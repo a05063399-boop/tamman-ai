@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="طمّان AI", page_icon="🤖", layout="centered")
 
-st.title("🤖 طمّان AI")
+st.title("🤖 طَمّن AI")
 st.markdown("أهلاً بك! اسأل طمّان أي شيء 👇")
 
 if "messages" not in st.session_state:
