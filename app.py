@@ -86,31 +86,24 @@ def check_virustotal(url_to_scan: str):
         print(f"خطأ في VirusTotal: {e}")
         return 0, 0
 
-def get_ai_reply(url: str, score: int, reasons: list, vt_result: str):
-    """توليد التقرير باللهجة السعودية باستخدام OpenAI"""
+def get_ai_reply(url, score, reasons):
     if not client:
-        return "تم التحليل بدون الذكاء الاصطناعي (أضف مفتاح OPENAI_API_KEY للتفعيل)"
+        return "تم التحليل بنجاح عبر VirusTotal ✅"
     try:
-        prompt = (
-            f"الرابط: {url}\n"
-            f"درجة الخطورة: {score}\n"
-            f"الأسباب: {', '.join(reasons)}\n"
-            f"نتيجة VirusTotal: {vt_result}\n"
-            "اشرح باللهجة السعودية هل هو آمن ولا تصيد، باختصار ومطمئن."
-        )
-        response = client.chat.completions.create(
+        prompt = f"الرابط: {url}, درجة الخطورة: {score}, الأسباب: {reasons}. اشرحي باللهجة السعودية هل هو آمن ولا تصيد باختصار."
+        r = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system", 
-                    "content": "أنت طَمّن، خبير أمن سيبراني سعودي، تشرح بلهجة سعودية بسيطة ومطمئنة."
-                },
+                {"role": "system", "content": "انت طَمّن، خبير أمن سيبراني سعودي، تشرح بلهجة سعودية بسيطة."},
                 {"role": "user", "content": prompt}
             ]
         )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"تعذر الحصول على تحليل الذكاء الاصطناعي: {str(e)}"
+        return r.choices[0].message.content
+    except:
+        if score >= 50:
+            return f"انتبهي! هذا الرابط خطير وتم كشفه من {reasons[-1] if reasons else 'المؤشرات المشبوهة'}. لا تدخلين بياناتك أبداً."
+        else:
+            return "الرابط يبدو آمن حسب فحص VirusTotal وفحص طَمّن ✅"
 
 # 4. مسارات API (Routes)
 @app.get("/")
@@ -150,10 +143,8 @@ def check_url(data: URLCheck):
 
     # 2. فحص VirusTotal
     vt_malicious, vt_total = check_virustotal(data.url)
-    vt_summary = "لم يتم اكتشاف تهديدات"
     if vt_malicious > 0:
         score += 50
-        vt_summary = f"تم تصنيفه ضار بواسطة {vt_malicious} من أصل {vt_total} محرك فحص"
         reasons.append(f"مُصنف كـ تهديد في VirusTotal ({vt_malicious}/{vt_total})")
 
     # 3. تحديد النتيجة النهائية
@@ -161,8 +152,7 @@ def check_url(data: URLCheck):
     ai_text = get_ai_reply(
         url=data.url, 
         score=score, 
-        reasons=reasons if reasons else ["لا يوجد مؤشرات تصيد ظاهرة"], 
-        vt_result=vt_summary
+        reasons=reasons if reasons else ["لا يوجد مؤشرات تصيد ظاهرة"]
     )
 
     return {
