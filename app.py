@@ -1,42 +1,80 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import re
-from urllib.parse import urlparse
+import os
+from openai import OpenAI
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-class Req(BaseModel):
+class URLCheck(BaseModel):
     url: str
 
-def analyze_url(u: str):
-    u = u.strip()
-    if not u.startswith('http'): u = 'https://' + u
-    domain = urlparse(u).netloc.lower()
-    score = 100; reasons = []; level = "منخفض"
-    if any(domain.endswith(t) for t in ['.tk','.ml','.ga','.cf','.gq','.xyz','.top']):
-        score -= 40; reasons.append("الدومين يستخدم امتداد مشبوه يكثر فيه النصب")
-    if re.search(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', domain):
-        score -= 50; reasons.append("الرابط يستخدم IP مباشر بدل اسم موقع، حركة تصيد واضحة")
-    if domain.count('-')>=3 or domain.count('.')>=4:
-        score -= 20; reasons.append("اسم الدومين فيه شرطات ونقاط كثيرة يحاول يقلد موقع ثاني")
-    if any(k in u.lower() for k in ['secure','bank','login','verify','gift','prize']):
-        score -= 25; reasons.append("الرابط فيه كلمات إغراء مثل bank أو gift عشان يخليك تضغط")
-    if '@' in u: score -= 40; reasons.append("فيه علامة @ داخل الرابط، تصيد 100%")
-    if not reasons: reasons.append("ما لقينا علامات تصيد واضحة، الدومين شكله نظيف")
-    if score < 50: level = "عالي"
-    elif score < 80: level = "متوسط"
-    score = max(0, min(100, score))
-    reason_text = "، ".join(reasons) + "."
-    if level=="عالي": reason_text = "انتبه لا تضغط! " + reason_text + " نصيحتي احذفه."
-    elif level=="متوسط": reason_text = "الرابط مريب شوي، " + reason_text
-    else: reason_text = "الرابط يبدو سليم، " + reason_text
-    return {"level": level, "score": score, "reason": reason_text, "domain": domain}
+client = None
+try:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+except:
+    pass
 
-@app.get("/", response_class=HTMLResponse)
+def get_ai_reply(url, score, reasons):
+    if not client:
+        return "تم التحليل بدون الذكاء الاصطناعي (أضيفي مفتاح OPENAI_API_KEY للتفعيل)"
+    try:
+        prompt = f"الرابط: {url}, درجة الخطورة: {score}, الأسباب: {reasons}. اشرحي باللهجة السعودية هل هو آمن ولا تصيد، باختصار ومطمئن."
+        r = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "انت طَمّن، خبير أمن سيبراني سعودي، تشرح بلهجة سعودية بسيطة ومطمئنة."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return r.choices[0].message.content
+    except Exception as e:
+        return str(e)
+
+@app.get("/api")
 def home():
-    with open("index.html","r",encoding="utf-8") as f: return f.read()
+    return {"status": "Tamman AI is running"}
 
 @app.post("/check")
-def check(req: Req):
-    return JSONResponse(analyze_url(req.url))
+def check_url(data: URLCheck):
+    url = data.url.lower()
+    score = 0
+    reasons = []
+    if re.search(r"@|\.tk|\.ml|\.ga|bit\.ly|tinyurl", url):
+        score += 40
+        reasons.append("رابط مختصر أو مشبوه")
+    if url.count("-") > 3 or url.count(".") > 4:
+        score += 30
+        reasons.append("عدد كبير من الشرطات والنقاط")
+    if re.search(r"login|verify|bank|secure|update|free|gift", url) and not any(x in url for x in ["tamman.sa", "google.com"]):
+        score += 30
+        reasons.append("كلمات تصيد (login, verify, bank)")
+    if len(url) > 75:
+        score += 20
+        reasons.append("رابط طويل جداً")
+    if re.search(r"\d+\.\d+\.\d+\.\d+", url):
+        score += 50
+        reasons.append("يستخدم عنوان IP مباشر")
+    is_phishing = score >= 50
+    ai_text = get_ai_reply(data.url, score, reasons)
+    return {
+        "url": data.url,
+        "is_phishing": is_phishing,
+        "score": score,
+        "risk": "عالي 🔴" if is_phishing else "آمن 🟢",
+        "reasons": reasons if reasons else ["لا يوجد مؤشرات تصيد"],
+        "ai_analysis": ai_text
+    }
+
+@app.get("/")
+def serve_index():
+    return FileResponse("index.html")
