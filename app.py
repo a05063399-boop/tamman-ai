@@ -5,6 +5,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import re
 import os
+import requests
+import time
 from openai import OpenAI
 
 app = FastAPI()
@@ -23,6 +25,27 @@ try:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 except:
     pass
+
+# --- كود VirusTotal الجديد ---
+VT_API_KEY = os.getenv("VT_API_KEY")
+
+def check_virustotal(url_to_scan):
+    try:
+        if not VT_API_KEY:
+            return 0, 0
+        h = {"x-apikey": VT_API_KEY}
+        r = requests.post("https://www.virustotal.com/api/v3/urls", headers=h, data={"url": url_to_scan}, timeout=20)
+        if r.status_code!= 200:
+            return 0, 0
+        aid = r.json()['data']['id']
+        time.sleep(4)
+        rep = requests.get(f"https://www.virustotal.com/api/v3/analyses/{aid}", headers=h, timeout=20).json()
+        s = rep['data']['attributes']['stats']
+        mal = s.get('malicious', 0) + s.get('suspicious', 0)
+        tot = sum(s.values())
+        return mal, tot
+    except:
+        return 0, 0
 
 def get_ai_reply(url, score, reasons):
     if not client:
@@ -64,6 +87,13 @@ def check_url(data: URLCheck):
     if re.search(r"\d+\.\d+\.\d+\.\d+", url):
         score += 50
         reasons.append("يستخدم عنوان IP مباشر")
+
+    # --- فحص VirusTotal الجديد ---
+    vt_mal, vt_total = check_virustotal(data.url)
+    if vt_mal > 0:
+        score += 40
+        reasons.append(f"تم كشفه من {vt_mal} شركة حماية من أصل {vt_total} في VirusTotal 🔴")
+
     is_phishing = score >= 50
     ai_text = get_ai_reply(data.url, score, reasons)
     return {
@@ -72,7 +102,8 @@ def check_url(data: URLCheck):
         "score": score,
         "risk": "عالي 🔴" if is_phishing else "آمن 🟢",
         "reasons": reasons if reasons else ["لا يوجد مؤشرات تصيد"],
-        "ai_analysis": ai_text
+        "ai_analysis": ai_text,
+        "virustotal": {"malicious": vt_mal, "total": vt_total}
     }
 
 @app.get("/")
