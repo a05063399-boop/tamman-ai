@@ -88,7 +88,7 @@ def serve_index():
 @app.get("/api/live")
 def get_live():
     db = read_db()
-    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 300][:10]
+    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
     write_db(db)
     return db["live"]
 
