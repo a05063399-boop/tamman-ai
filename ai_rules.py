@@ -18,7 +18,7 @@ PHISHING_WORDS = ["login", "verify", "secure", "update", "bank", "account", "sig
 SAUDI_TRICKS = ["دعم", "حساب المواطن", "مكافأة", "مخالفة", "ناجز", "ابشر", "راتب", "مساعدة"]
 
 def smart_brain(url: str):
-    # يفحص كم مرة تكرر الرابط في قاعدة البيانات
+    # يفحص كم مرة تكرر الرابط
     try:
         conn = sqlite3.connect("tamman.db")
         c = conn.cursor()
@@ -48,8 +48,8 @@ def analyze_local(url: str):
 
     # فحص @ - يخفي الموقع الحقيقي
     if "@" in url_lower:
-        score += 80
-        reasons.append("🔴 خطر @ - اللي قبله وهمي")
+        score += 30 # كان 80 عشان يطلع مشبوه مو خطير
+        reasons.append("🟡 خطر @ - اللي قبله وهمي")
 
     # فحص IP مباشر
     if re.search(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", url_lower):
@@ -79,8 +79,8 @@ def analyze_local(url: str):
     # فحص نطاقات رخيصة
     for tld in SUSPICIOUS_TLDS:
         if domain.endswith(tld):
-            score += 50
-            reasons.append(f"🟠 نطاق رخيص: {tld}")
+            score += 25 # كان 50 عشان يطلع مشبوه
+            reasons.append(f"🟡 نطاق رخيص: {tld}")
             break
 
     # فحص استضافة مجانية
@@ -114,12 +114,12 @@ def analyze_local(url: str):
                     reasons.append(f"🟠 انتحال {brand}")
                     break
 
-    # فحص حروف مشابهة g00gle
+    # فحص حروف مشابهة
     if re.search(r"(g[o0]{2}gle|paypa[l1]|micr[o0]s[o0]ft|app[l1]e|faceb[o0]{2}k)", domain):
         score += 55
         reasons.append("🟠 تقليد اسم شركة")
 
-    # فحص كلمتين تصيد في الدومين
+    # فحص كلمتين تصيد
     phishing_in_domain = sum(1 for w in PHISHING_WORDS if w in domain)
     if phishing_in_domain >= 2:
         score += 45
@@ -138,7 +138,7 @@ def analyze_local(url: str):
         score += 15
         reasons.append("🟡 رابط أطول من الطبيعي")
 
-    # فحص كلمات حساسة في المسار
+    # فحص كلمات حساسة
     if any(w in path for w in PHISHING_WORDS):
         score += 15
         reasons.append("🟡 كلمات حساسة في المسار")
@@ -187,7 +187,6 @@ def analyze_local(url: str):
     return min(score, 100), final, is_phishing
 
 def get_gemini_prompt(url, score, reasons, vt_str):
-    # برومبت Gemini - يتوقع ايش بيصير لو دخلت
     level = "آمن" if score < 45 else "مشبوه" if score < 75 else "خطير"
     return f"""
 انت طَمّن خبير أمني.
