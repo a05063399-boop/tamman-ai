@@ -106,7 +106,7 @@ def check_url(data: URLCheck):
     if url_raw in db["cache"] and time.time() - db["cache"][url_raw]["time"] < 604800:
         cached = db["cache"][url_raw]
         db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": cached["is_phishing"], "time": time.time()})
-        db["live"] = db["live"][:10]
+        db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
         write_db(db)
         return cached
 
@@ -144,6 +144,6 @@ def check_url(data: URLCheck):
 
     db["cache"][url_raw] = result
     db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": is_phishing, "time": time.time()})
-    db["live"] = db["live"][:10]
+    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
     write_db(db)
     return result
