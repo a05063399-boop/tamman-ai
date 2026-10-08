@@ -18,9 +18,9 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .desc{font-size:13px;opacity:.6;text-align:center;margin-bottom:16px}
 .input-box{background:#f8faf8;border:1.5px solid #c8e6c9;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px}
 .input-box input{flex:1;border:0;background:transparent;outline:none;font-size:14px;text-align:right;direction:ltr}
-.btn-main{width:100%;background:#0ca24b;color:white;border:0;padding:16px;border-radius:14px;font-size:22px;font-weight:800;margin-top:14px;cursor:pointer;box-shadow:0 6px 18px #0ca24b40}
+.btn-main{width:100%;background:#0ca24b;color:white;border:0;padding:16px;border-radius:14px;font-size:22px;font-weight:800;margin-top:14px;cursor:pointer}
 .tip{background:#f1f8e9;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;margin-top:14px}
-.live-head{display:flex;justify-content:space-between;margin:18px 4px 10px;font-weight:800;font-size:15px}
+.live-head{display:flex;justify-content:space-between;margin:18px 4px 10px;font-weight:800;font-size:15px;align-items:center}
 .live-item{background:white;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #00000008}
 .url{font-size:12px;direction:ltr;text-align:left;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
@@ -38,86 +38,53 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 <body>
 <div class="phone">
   <div class="top">
-    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover;border:2px solid #fff"></div><div><small id="t0" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b id="t1">طَمّن</b></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t0" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b>طَمّن</b></div></div>
     <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
 
-  <!-- صفحة الروابط -->
   <div id="p1" class="page active">
     <div class="card-main">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="appName">طمّن</span></div>
-      <div class="sub-green" id="sub1">فحص الروابط المشبوهة</div>
-      <div class="title" id="welcome">مرحباً</div>
-      <div class="desc" id="desc1">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>طَمّن</div>
+      <div class="sub-green">فحص الروابط المشبوهة</div>
+      <div class="title">مرحباً</div>
+      <div class="desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
       <div class="input-box"><span>🔗</span><input id="urlIn" placeholder="الصق الرابط هنا..."></div>
-      <button class="btn-main" id="scanBtn1" onclick="doScanLink()">افحص الآن</button>
+      <button class="btn-main" onclick="doScanLink()">افحص الآن</button>
       <div id="outLink"></div>
-      <div class="tip"><div>🛡️</div><div><b id="tipT">نصيحة أمنية</b><br><small id="tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
+      <div class="tip"><div>🛡️</div><div><b>نصيحة أمنية</b><br><small style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
     </div>
-    <div class="live-head"><span id="liveT1">آخر الفحوصات</span><a href="#" onclick="renderLive()">عرض الكل</a></div>
+
+    <!-- هذا السطر اللي طلبته -->
+    <div class="live-head"><span id="liveT1">آخر الفحوصات</span><span style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
 
-  <!-- صفحة الجوال -->
   <div id="p2" class="page">
     <div class="card-main">
-      <div class="logo" style="color:#6b46c1"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-2.9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="appName2">طمّن</span></div>
-      <div class="sub-green" id="sub2" style="color:#6b46c1">فحص الأرقام المشبوهة</div>
-      <div class="title" id="welcome2">فحص الجوال</div>
-      <div class="desc" id="desc2">أدخل الرقم المشبوه للتأكد منه</div>
+      <div class="logo" style="color:#6b46c1"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg>طَمّن</div>
+      <div class="sub-green" style="color:#6b46c1">فحص الأرقام</div>
       <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
-      <button class="btn-main" style="background:#6b46c1" id="scanBtn2" onclick="doScanPhone()">افحص الآن</button>
+      <button class="btn-main" style="background:#6b46c1" onclick="doScanPhone()">افحص الآن</button>
       <div id="outPhone"></div>
     </div>
-    <div class="live-head"><span id="liveT2">آخر فحوصات الأرقام</span><span style="font-size:10px;opacity:.5">Live</span></div>
+    <div class="live-head"><span>آخر فحوصات الأرقام</span><span style="color:#6b46c1;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
     <div id="liveList2"></div>
   </div>
 
-  <!-- صفحة الإعدادات -->
   <div id="p3" class="page">
-    <div class="card-main"><b id="setT">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br><br>الإصدار 1.0 - خميس مشيط<br>API: tamman-ai.onrender.com</div></div>
+    <div class="card-main"><b>الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0<br>tamman-ai.onrender.com</div></div>
   </div>
 </div>
 
 <div class="nav">
-  <button id="b1" class="active" onclick="go(1)">🔗<span id="n1">الروابط</span></button>
-  <button id="b2" onclick="go(2)">📱<span id="n2">الجوال</span></button>
-  <button id="b3" onclick="go(3)">⚙️<span id="n3">الإعدادات</span></button>
+  <button id="b1" class="active" onclick="go(1)">🔗<span>الروابط</span></button>
+  <button id="b2" onclick="go(2)">📱<span>الجوال</span></button>
+  <button id="b3" onclick="go(3)">⚙️<span>الإعدادات</span></button>
 </div>
 
 <script>
 let L = localStorage.getItem('lang')||'ar';
-const T = {
- ar:{t0:"مرحبا بعودتك",app:"طمّن",sub1:"فحص الروابط المشبوهة",sub2:"فحص الأرقام المشبوهة",welcome:"مرحباً",welcome2:"فحص الجوال",desc1:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",desc2:"أدخل الرقم المشبوه للتأكد منه",scan:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة واحرص على التحقق قبل الفتح",live1:"آخر الفحوصات",live2:"آخر فحوصات الأرقام",n1:"الروابط",n2:"الجوال",n3:"الإعدادات",set:"الإعدادات",btn:"EN"},
- en:{t0:"Welcome Back",app:"Tammen",sub1:"Suspicious Link Check",sub2:"Phone Number Check",welcome:"Welcome",welcome2:"Phone Check",desc1:"Enter link below to verify safety",desc2:"Enter suspicious number",scan:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Live Scans",live2:"Live Phone Scans",n1:"Links",n2:"Phones",n3:"Settings",set:"Settings",btn:"عربي"}
-};
-function applyLang(){
- let d=T[L];
- document.dir=L=='ar'?'rtl':'ltr';
- document.getElementById('t0').innerText=d.t0;
- document.getElementById('appName').innerText=d.app;
- document.getElementById('appName2').innerText=d.app;
- document.getElementById('sub1').innerText=d.sub1;
- document.getElementById('sub2').innerText=d.sub2;
- document.getElementById('welcome').innerText=d.welcome;
- document.getElementById('welcome2').innerText=d.welcome2;
- document.getElementById('desc1').innerText=d.desc1;
- document.getElementById('desc2').innerText=d.desc2;
- document.getElementById('scanBtn1').innerText=d.scan;
- document.getElementById('scanBtn2').innerText=d.scan;
- document.getElementById('tipT').innerText=d.tipT;
- document.getElementById('tipD').innerText=d.tipD;
- document.getElementById('liveT1').innerText=d.live1;
- document.getElementById('liveT2').innerText=d.live2;
- document.getElementById('n1').innerText=d.n1;
- document.getElementById('n2').innerText=d.n2;
- document.getElementById('n3').innerText=d.n3;
- document.getElementById('setT').innerText=d.set;
- document.getElementById('langBtn').innerText=d.btn;
-}
-function toggleLang(){ L=L=='ar'?'en':'ar'; localStorage.setItem('lang',L); applyLang(); }
-applyLang();
-
+function toggleLang(){L=L=='ar'?'en':'ar';localStorage.setItem('lang',L);location.reload()}
 function go(n){
  document.getElementById('p1').classList.toggle('active',n==1);
  document.getElementById('p2').classList.toggle('active',n==2);
@@ -130,14 +97,13 @@ function maskUrl(u){try{let c=u.replace('https://','').replace('http://','');ret
 async function renderLive(){
  try{
   let r=await fetch('/api/live'); let data=await r.json();
-  document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد</div>';
+  document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد فحوصات</div>';
  }catch{
   let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
   document.getElementById('liveList').innerHTML=hist.map(h=>`<div class="live-item"><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div>`).join('');
  }
 }
 setInterval(renderLive,5000); renderLive();
-
 async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim(); if(!v) return;
  document.getElementById('outLink').innerHTML='<div class="result safe">⏳ جاري الفحص...</div>';
@@ -148,13 +114,12 @@ async function doScanLink(){
  }catch{
   let bad=v.includes('short')||v.includes('xyz');
   document.getElementById('outLink').innerHTML=`<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن'}</div>`;
-  let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]'); hist.unshift({url:maskUrl(v),isBad:bad}); localStorage.setItem('tammen_live',JSON.stringify(hist.slice(0,5)));
  }
  renderLive();
 }
 function doScanPhone(){
  let v=document.getElementById('phoneIn').value.trim(); if(!v) return;
- let bad=v.includes('000')||v.startsWith('+44');
+ let bad=v.includes('000');
  document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ رقم احتيال</div>`:`<div class="result safe">✅ رقم آمن</div>`;
 }
 </script>
