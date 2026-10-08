@@ -38,13 +38,13 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 <body>
 <div class="phone">
   <div class="top">
-    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t-hello" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b>طَمّن</b></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t-hello" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b id="t-topName">طَمّن</b></div></div>
     <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
 
   <div id="p1" class="page active">
     <div class="card-main">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>طَمّن</div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="logoTxt1">طَمّن</span></div>
       <div class="sub-green" id="t-scan">فحص الروابط المشبوهة</div>
       <div class="title" id="t-welcome">مرحباً</div>
       <div class="desc" id="t-desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
@@ -59,7 +59,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 
   <div id="p2" class="page">
     <div class="card-main">
-      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="logoTxt">طَمّن</span></div>
+      <div class="logo"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-1 0-1 0v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="logoTxt2">طَمّن</span></div>
       <div class="sub-green" style="color:#6b46c1" id="t-phoneT">فحص الأرقام</div>
       <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
       <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
@@ -78,13 +78,16 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
- ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",vt:"حسب VirusTotal"},
- en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",vt:"According to VirusTotal"}
+ ar: {logo:"طَمّن",hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",vt:"حسب VirusTotal"},
+ en: {logo:"TAMMAN",hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",vt:"According to VirusTotal"}
 };
 function applyLang(){
  document.documentElement.dir = L=='ar'?'rtl':'ltr';
  document.documentElement.lang = L;
  document.getElementById('langBtn').innerText = L=='ar'?'EN':'AR';
+ document.getElementById('logoTxt1').innerText = T[L].logo;
+ document.getElementById('logoTxt2').innerText = T[L].logo;
+ document.getElementById('t-topName').innerText = T[L].logo;
  document.getElementById('t-hello').innerText = T[L].hello;
  document.getElementById('t-scan').innerText = T[L].scan;
  document.getElementById('t-welcome').innerText = T[L].welcome;
@@ -124,7 +127,6 @@ async function renderLive(){
  }catch{}
 }
 setInterval(renderLive,5000); renderLive(); applyLang();
-
 async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim(); if(!v) return;
  document.getElementById('outLink').innerHTML=`<div class="result safe">${T[L].scanning}</div>`;
