@@ -4,167 +4,111 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;500&display=swap" rel="stylesheet">
-<script>
-let L = localStorage.getItem('lang')||'ar';
-
-const T = {
- ar: {
-   hello: "مرحبا بعودتك",
-   scanTitle: "فحص الروابط المشبوهة",
-   welcome: "مرحباً",
-   desc: "أدخل الرابط أدناه لفحصه والتأكد من سلامته",
-   placeholderLink: "الصق الرابط هنا...",
-   btn: "افحص الآن",
-   tipTitle: "نصيحة أمنية",
-   tipText: "تجنّب الروابط المختصرة المجهولة",
-   live1: "آخر الفحوصات",
-   live2: "آخر فحوصات الأرقام",
-   nav1: "الروابط",
-   nav2: "الجوال",
-   nav3: "الإعدادات",
-   phonePlace: "+966 5X XXX XXXX",
-   phoneTitle: "فحص الأرقام"
- },
- en: {
-   hello: "Welcome back",
-   scanTitle: "Suspicious Link Scanner",
-   welcome: "Hello",
-   desc: "Enter the link below to check its safety",
-   placeholderLink: "Paste link here...",
-   btn: "Scan Now",
-   tipTitle: "Security Tip",
-   tipText: "Avoid unknown short links",
-   live1: "Recent Scans",
-   live2: "Recent Phone Scans",
-   nav1: "Links",
-   nav2: "Mobile",
-   nav3: "Settings",
-   phonePlace: "+966 5X XXX XXXX",
-   phoneTitle: "Phone Number Check"
- }
-}
-
-function applyLang(){
-  document.documentElement.dir = L=='ar'?'rtl':'ltr';
-  document.documentElement.lang = L;
-  document.getElementById('langBtn').innerText = L=='ar'?'EN':'AR';
-  document.getElementById('t0').innerText = T[L].hello;
-  document.querySelector('#p1.sub-green').innerText = T[L].scanTitle;
-  document.querySelector('#p1.title').innerText = T[L].welcome;
-  document.querySelector('#p1.desc').innerText = T[L].desc;
-  document.getElementById('urlIn').placeholder = T[L].placeholderLink;
-  document.querySelector('#p1.btn-main').innerText = T[L].btn;
-  document.getElementById('liveT1').innerText = T[L].live1;
-  document.querySelectorAll('.nav span')[0].innerText = T[L].nav1;
-  document.querySelectorAll('.nav span')[1].innerText = T[L].nav2;
-  document.querySelectorAll('.nav span')[2].innerText = T[L].nav3;
-  if(document.getElementById('phoneIn')){
-    document.getElementById('phoneIn').placeholder = T[L].phonePlace;
-    document.querySelector('#p2.sub-green').innerText = T[L].phoneTitle;
-    document.querySelector('#p2.btn-main').innerText = T[L].btn;
-  }
-  // نصيحة
-  let tipB = document.querySelector('.tip b');
-  if(tipB) tipB.innerText = T[L].tipTitle;
-}
-
-function toggleLang(){
-  L = L=='ar'?'en':'ar';
-  localStorage.setItem('lang',L);
-  applyLang();
-}
-
-function go(n){
- document.getElementById('p1').classList.toggle('active',n==1);
- document.getElementById('p2').classList.toggle('active',n==2);
- document.getElementById('p3').classList.toggle('active',n==3);
- document.getElementById('b1').classList.toggle('active',n==1);
- document.getElementById('b2').classList.toggle('active',n==2);
- document.getElementById('b3').classList.toggle('active',n==3);
-}
-function maskUrl(u){try{let c=u.replace('https://','').replace('http://','');return c.slice(0,4)+'****'+c.slice(-4)}catch{return u.slice(0,3)+'****'}}
-
-async function renderLive(){
- try{
-  let r=await fetch('/api/live'); let data=await r.json();
-  document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد فحوصات</div>';
- }catch{
-  let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
-  document.getElementById('liveList').innerHTML=hist.map(h=>`<div class="live-item"><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div>`).join('');
- }
-}
-setInterval(renderLive,5000); renderLive(); applyLang();
-
-async function doScanLink(){
- let v=document.getElementById('urlIn').value.trim(); if(!v) return;
- document.getElementById('outLink').innerHTML='<div class="result safe">⏳ جاري الفحص...</div>';
- try{
-  let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
-  let data=await r.json();
-  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.ai_analysis||data.url}</small></div>`;
- }catch{
-  let bad=v.includes('short')||v.includes('xyz');
-  document.getElementById('outLink').innerHTML=`<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن'}</div>`;
- }
- renderLive();
-}
-function doScanPhone(){
- let v=document.getElementById('phoneIn').value.trim(); if(!v) return;
- let bad=v.includes('000');
- document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ رقم احتيال</div>`:`<div class="result safe">✅ رقم آمن</div>`;
-}
-</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
+.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:12px 16px 100px;position:relative}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.lang-btn{background:#0ca24b;color:white;border:0;padding:6px 14px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer}
+.card-main{background:white;border-radius:28px;padding:22px 18px;box-shadow:0 10px 30px #00000010;border:1px solid #00000006}
+.logo{display:flex;align-items:center;justify-content:center;gap:10px;color:#0a5d2e;font-size:42px;font-weight:800}
+.logo svg{width:54px;height:54px}
+.sub-green{color:#1a8a4a;text-align:center;font-size:17px;margin:4px 0 18px;font-weight:700}
+.title{font-size:26px;font-weight:800;text-align:center;margin-bottom:6px}
+.desc{font-size:13px;opacity:.6;text-align:center;margin-bottom:16px}
+.input-box{background:#f8faf8;border:1.5px solid #c8e6c9;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.input-box input{flex:1;border:0;background:transparent;outline:none;font-size:14px;text-align:right;direction:ltr}
+.btn-main{width:100%;background:#0ca24b;color:white;border:0;padding:16px;border-radius:14px;font-size:22px;font-weight:800;margin-top:14px;cursor:pointer}
+.tip{background:#f1f8e9;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;margin-top:14px}
+.live-head{display:flex;justify-content:space-between;margin:18px 4px 10px;font-weight:800;font-size:15px;align-items:center}
+.live-item{background:white;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #00000008}
+.url{font-size:12px;direction:ltr;text-align:left;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.badge-ok{background:#e8f5e9;color:#1b8a4a}
+.badge-bad{background:#fff3e0;color:#e67e00}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015}
+.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 18px;border-radius:14px}
+.nav button.active{background:#0ca24b15;color:#0ca24b}
+.page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.result{margin-top:12px;padding:12px;border-radius:12px;font-size:13px}
+.result.safe{background:#e8f5e9;border:1px solid #0ca24b;color:#0a5d2e}
+.result.bad{background:#ffebee;border:1px solid #ff4444;color:#7a1a1a}
+</style>
 </head>
 <body>
 <div class="phone">
   <div class="top">
-    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t0" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b>طَمّن</b></div></div>
+    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t-hello" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b>طَمّن</b></div></div>
     <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
 
   <div id="p1" class="page active">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>طَمّن</div>
-      <div class="sub-green">فحص الروابط المشبوهة</div>
-      <div class="title">مرحباً</div>
-      <div class="desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
+      <div class="sub-green" id="t-scan">فحص الروابط المشبوهة</div>
+      <div class="title" id="t-welcome">مرحباً</div>
+      <div class="desc" id="t-desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
       <div class="input-box"><span>🔗</span><input id="urlIn" placeholder="الصق الرابط هنا..."></div>
-      <button class="btn-main" onclick="doScanLink()">افحص الآن</button>
+      <button class="btn-main" id="t-btn1" onclick="doScanLink()">افحص الآن</button>
       <div id="outLink"></div>
-      <div class="tip"><div>🛡️</div><div><b>نصيحة أمنية</b><br><small style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
+      <div class="tip"><div>🛡️</div><div><b id="t-tipT">نصيحة أمنية</b><br><small id="t-tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
     </div>
-
-    <!-- هذا السطر اللي طلبته -->
-    <div class="live-head"><span id="liveT1">آخر الفحوصات</span><span style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
+    <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
 
   <div id="p2" class="page">
     <div class="card-main">
-      <div class="logo" style="color:#6b46c1"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg>طَمّن</div>
-      <div class="sub-green" style="color:#6b46c1">فحص الأرقام</div>
+      <div class="logo" style="color:#6b46c1"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-2.9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg>طَمّن</div>
+      <div class="sub-green" style="color:#6b46c1" id="t-phoneT">فحص الأرقام</div>
       <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
-      <button class="btn-main" style="background:#6b46c1" onclick="doScanPhone()">افحص الآن</button>
+      <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
       <div id="outPhone"></div>
     </div>
-    <div class="live-head"><span>آخر فحوصات الأرقام</span><span style="color:#6b46c1;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
+    <div class="live-head"><span id="t-live2">آخر فحوصات الأرقام</span><span style="color:#6b46c1;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
     <div id="liveList2"></div>
   </div>
 
   <div id="p3" class="page">
-    <div class="card-main"><b>الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0<br>tamman-ai.onrender.com</div></div>
+    <div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0</div></div>
   </div>
 </div>
 
 <div class="nav">
-  <button id="b1" class="active" onclick="go(1)">🔗<span>الروابط</span></button>
-  <button id="b2" onclick="go(2)">📱<span>الجوال</span></button>
-  <button id="b3" onclick="go(3)">⚙️<span>الإعدادات</span></button>
+  <button id="b1" class="active" onclick="go(1)">🔗<span id="t-nav1">الروابط</span></button>
+  <button id="b2" onclick="go(2)">📱<span id="t-nav2">الجوال</span></button>
+  <button id="b3" onclick="go(3)">⚙️<span id="t-nav3">الإعدادات</span></button>
 </div>
 
 <script>
 let L = localStorage.getItem('lang')||'ar';
-function toggleLang(){L=L=='ar'?'en':'ar';localStorage.setItem('lang',L);location.reload()}
+const T = {
+ ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",live2:"آخر فحوصات الأرقام",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات"},
+ en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",live2:"Recent Phone Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings"}
+};
+function applyLang(){
+ document.documentElement.dir = L=='ar'?'rtl':'ltr';
+ document.documentElement.lang = L;
+ document.getElementById('langBtn').innerText = L=='ar'?'EN':'AR';
+ document.getElementById('t-hello').innerText = T[L].hello;
+ document.getElementById('t-scan').innerText = T[L].scan;
+ document.getElementById('t-welcome').innerText = T[L].welcome;
+ document.getElementById('t-desc').innerText = T[L].desc;
+ document.getElementById('urlIn').placeholder = T[L].phLink;
+ document.getElementById('t-btn1').innerText = T[L].btn;
+ document.getElementById('t-btn2').innerText = T[L].btn;
+ document.getElementById('t-tipT').innerText = T[L].tipT;
+ document.getElementById('t-tipD').innerText = T[L].tipD;
+ document.getElementById('t-live1').innerText = T[L].live1;
+ document.getElementById('t-live2').innerText = T[L].live2;
+ document.getElementById('t-nav1').innerText = T[L].nav1;
+ document.getElementById('t-nav2').innerText = T[L].nav2;
+ document.getElementById('t-nav3').innerText = T[L].nav3;
+ document.getElementById('t-phoneT').innerText = T[L].phoneT;
+ document.getElementById('phoneIn').placeholder = T[L].phPhone;
+ document.getElementById('t-set').innerText = T[L].set;
+}
+function toggleLang(){ L = L=='ar'?'en':'ar'; localStorage.setItem('lang',L); applyLang(); }
 function go(n){
  document.getElementById('p1').classList.toggle('active',n==1);
  document.getElementById('p2').classList.toggle('active',n==2);
@@ -173,28 +117,21 @@ function go(n){
  document.getElementById('b2').classList.toggle('active',n==2);
  document.getElementById('b3').classList.toggle('active',n==3);
 }
-function maskUrl(u){try{let c=u.replace('https://','').replace('http://','');return c.slice(0,4)+'****'+c.slice(-4)}catch{return u.slice(0,3)+'****'}}
 async function renderLive(){
  try{
   let r=await fetch('/api/live'); let data=await r.json();
   document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد فحوصات</div>';
- }catch{
-  let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
-  document.getElementById('liveList').innerHTML=hist.map(h=>`<div class="live-item"><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div>`).join('');
- }
+ }catch{}
 }
-setInterval(renderLive,5000); renderLive();
+setInterval(renderLive,5000); renderLive(); applyLang();
 async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim(); if(!v) return;
  document.getElementById('outLink').innerHTML='<div class="result safe">⏳ جاري الفحص...</div>';
  try{
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
   let data=await r.json();
-  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.url}</small></div>`;
- }catch{
-  let bad=v.includes('short')||v.includes('xyz');
-  document.getElementById('outLink').innerHTML=`<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن'}</div>`;
- }
+  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.ai_analysis||''}</small></div>`;
+ }catch{ document.getElementById('outLink').innerHTML='<div class="result bad">⚠️ خطأ في الاتصال</div>'; }
  renderLive();
 }
 function doScanPhone(){
