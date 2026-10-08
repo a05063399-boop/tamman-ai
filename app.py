@@ -2,9 +2,9 @@ import base64, os, re, time, json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from openai import OpenAI
 from pydantic import BaseModel
 import requests
+import google.generativeai as genai
 
 app = FastAPI(title="طَمّن AI Global")
 
@@ -15,9 +15,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 VT_API_KEY = os.getenv("VT_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# إعداد Gemini المجاني
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    gemini_model = None
 
 DB_FILE = "db.json"
 if not os.path.exists(DB_FILE):
@@ -66,20 +72,19 @@ def check_virustotal(url_to_scan: str):
         return 0,0
 
 def get_ai_reply(url, score, reasons):
-    if not client:
-        return "تم التحليل عبر VirusTotal ✅"
+    if not gemini_model:
+        return "تم التحليل عبر طمّن ✅ (مفتاح Gemini غير موجود، أضف GEMINI_API_KEY في Render)"
     try:
-        prompt = f"الرابط: {url}, درجة الخطورة: {score}, الأسباب: {reasons}. اشرح باللهجة السعودية باختصار هل هو آمن ولا تصيد."
-        r = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role":"system","content":"انت طَمّن، خبير أمن سيبراني سعودي."},
-                {"role":"user","content":prompt}
-            ]
-        )
-        return r.choices[0].message.content
-    except:
-        return "آمن 🟢" if score < 50 else "مشبوه 🔴"
+        prompt = f"""انت طَمّن، خبير أمن سيبراني سعودي.
+الرابط: {url}
+درجة الخطورة: {score}
+الأسباب: {reasons}
+اشرح باللهجة السعودية وباختصار شديد (سطرين فقط) هل هو آمن ولا تصيد ولماذا."""
+        r = gemini_model.generate_content(prompt)
+        return r.text.strip()
+    except Exception as e:
+        print(f"Gemini error: {e}")
+        return "آمن 🟢" if score < 50 else "مشبوه 🔴 احذر، هذا الرابط فيه مؤشرات تصيد"
 
 @app.get("/")
 def serve_index():
@@ -94,7 +99,7 @@ def get_live():
 
 @app.get("/api")
 def home():
-    return {"status":"Tamman Global Live ✅"}
+    return {"status":"Tamman Global Live ✅ Gemini Free"}
 
 @app.post("/check")
 def check_url(data: URLCheck):
@@ -141,6 +146,12 @@ def check_url(data: URLCheck):
         "ai_analysis": ai_text,
         "time": time.time()
     }
+
+    db["cache"][url_raw] = result
+    db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": is_phishing, "time": time.time()})
+    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
+    write_db(db)
+    return result
 
     db["cache"][url_raw] = result
     db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": is_phishing, "time": time.time()})
