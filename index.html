@@ -30,7 +30,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 18px;border-radius:14px}
 .nav button.active{background:#0ca24b15;color:#0ca24b}
 .page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
-.result{margin-top:12px;padding:12px;border-radius:12px;font-size:13px}
+.result{margin-top:12px;padding:12px;border-radius:12px;font-size:13px;line-height:1.7}
 .result.safe{background:#e8f5e9;border:1px solid #0ca24b;color:#0a5d2e}
 .result.bad{background:#ffebee;border:1px solid #ff4444;color:#7a1a1a}
 </style>
@@ -53,7 +53,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
       <div id="outLink"></div>
       <div class="tip"><div>🛡️</div><div><b id="t-tipT">نصيحة أمنية</b><br><small id="t-tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
     </div>
-    <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
+    <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
 
@@ -66,10 +66,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
       <div id="outPhone"></div>
     </div>
   </div>
-
-  <div id="p3" class="page">
-    <div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0</div></div>
-  </div>
+  <div id="p3" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0</div></div></div>
 </div>
 
 <div class="nav">
@@ -81,8 +78,8 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
- ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",safeD:"الرابط آمن ولا يوجد به أنماط تصيد",badD:"تم اكتشاف أنماط مشبوهة في هذا الرابط"},
- en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",safeD:"Link looks safe. No phishing patterns detected.",badD:"Suspicious patterns detected in this link."}
+ ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",vt:"حسب VirusTotal"},
+ en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",vt:"According to VirusTotal"}
 };
 function applyLang(){
  document.documentElement.dir = L=='ar'?'rtl':'ltr';
@@ -127,6 +124,7 @@ async function renderLive(){
  }catch{}
 }
 setInterval(renderLive,5000); renderLive(); applyLang();
+
 async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim(); if(!v) return;
  document.getElementById('outLink').innerHTML=`<div class="result safe">${T[L].scanning}</div>`;
@@ -134,8 +132,10 @@ async function doScanLink(){
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
   let data=await r.json();
   let statusText = data.is_phishing? '⚠️ '+T[L].bad : '✅ '+T[L].safe;
-  let analysis = data.is_phishing? T[L].badD : T[L].safeD;
-  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${statusText}<br><small>${analysis}</small></div>`;
+  let vt = data.virustotal || {malicious:0,total:0};
+  let vtText = `${T[L].vt}: ${vt.malicious}/${vt.total} ${vt.malicious==0?T[L].safe:T[L].bad}`;
+  let ai = data.ai_analysis||'';
+  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}"><b>${statusText}</b><br><small style="display:block;margin-top:6px">🔍 ${vtText}</small><small style="display:block;margin-top:6px;opacity:.8">${ai}</small></div>`;
  }catch{
   document.getElementById('outLink').innerHTML=`<div class="result bad">${T[L].err}</div>`;
  }
