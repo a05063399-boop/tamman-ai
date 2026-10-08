@@ -53,7 +53,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
       <div id="outLink"></div>
       <div class="tip"><div>🛡️</div><div><b id="t-tipT">نصيحة أمنية</b><br><small id="t-tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
     </div>
-    <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
+    <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
 
@@ -65,8 +65,6 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
       <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
       <div id="outPhone"></div>
     </div>
-    <div class="live-head"><span id="t-live2">آخر فحوصات الأرقام</span><span style="color:#6b46c1;font-size:13px;font-weight:800;display:flex;align-items:center;gap:4px">🔴 لايف</span></div>
-    <div id="liveList2"></div>
   </div>
 
   <div id="p3" class="page">
@@ -83,8 +81,8 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
- ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",live2:"آخر فحوصات الأرقام",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات"},
- en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",live2:"Recent Phone Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings"}
+ ar: {hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",safeD:"الرابط آمن ولا يوجد به أنماط تصيد",badD:"تم اكتشاف أنماط مشبوهة في هذا الرابط"},
+ en: {hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",safeD:"Link looks safe. No phishing patterns detected.",badD:"Suspicious patterns detected in this link."}
 };
 function applyLang(){
  document.documentElement.dir = L=='ar'?'rtl':'ltr';
@@ -100,13 +98,14 @@ function applyLang(){
  document.getElementById('t-tipT').innerText = T[L].tipT;
  document.getElementById('t-tipD').innerText = T[L].tipD;
  document.getElementById('t-live1').innerText = T[L].live1;
- document.getElementById('t-live2').innerText = T[L].live2;
  document.getElementById('t-nav1').innerText = T[L].nav1;
  document.getElementById('t-nav2').innerText = T[L].nav2;
  document.getElementById('t-nav3').innerText = T[L].nav3;
  document.getElementById('t-phoneT').innerText = T[L].phoneT;
  document.getElementById('phoneIn').placeholder = T[L].phPhone;
  document.getElementById('t-set').innerText = T[L].set;
+ document.getElementById('liveTxt').innerText = '🔴 '+T[L].live;
+ renderLive();
 }
 function toggleLang(){ L = L=='ar'?'en':'ar'; localStorage.setItem('lang',L); applyLang(); }
 function go(n){
@@ -120,24 +119,36 @@ function go(n){
 async function renderLive(){
  try{
   let r=await fetch('/api/live'); let data=await r.json();
-  document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد فحوصات</div>';
+  data = data.slice(0,5);
+  document.getElementById('liveList').innerHTML=data.map(h=>{
+    let txt = h.isBad? T[L].bad : T[L].safe;
+    return `<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${txt}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`
+  }).join('')||`<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">${T[L].no}</div>`;
  }catch{}
 }
 setInterval(renderLive,5000); renderLive(); applyLang();
 async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim(); if(!v) return;
- document.getElementById('outLink').innerHTML='<div class="result safe">⏳ جاري الفحص...</div>';
+ document.getElementById('outLink').innerHTML=`<div class="result safe">${T[L].scanning}</div>`;
  try{
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
   let data=await r.json();
-  db["live"] = db["live"][:5]
-  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.ai_analysis||''}</small></div>`;
- }catch{ document.getElementById('outLink').innerHTML='<div class="result bad">⚠️ خطأ في الاتصال</div>'; }
+  let statusText = data.is_phishing? '⚠️ '+T[L].bad : '✅ '+T[L].safe;
+  let analysis = data.is_phishing? T[L].badD : T[L].safeD;
+  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${statusText}<br><small>${analysis}</small></div>`;
+ }catch{
+  document.getElementById('outLink').innerHTML=`<div class="result bad">${T[L].err}</div>`;
+ }
  renderLive();
 }
 function doScanPhone(){
  let v=document.getElementById('phoneIn').value.trim(); if(!v) return;
  let bad=v.includes('000');
+ document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ ${T[L].bad}</div>`:`<div class="result safe">✅ ${T[L].safe}</div>`;
+}
+</script>
+</body>
+</html>
  document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ رقم احتيال</div>`:`<div class="result safe">✅ رقم آمن</div>`;
 }
 </script>
