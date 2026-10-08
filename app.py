@@ -1,5 +1,6 @@
-import base64, os, time, json
+import base64, os, time
 from ai_rules import analyze_local, get_gemini_prompt
+from database import get_cache, save_cache, add_live, get_live as get_live_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -24,22 +25,6 @@ if GEMINI_API_KEY:
     gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     gemini_model = None
-
-DB_FILE = "db.json"
-if not os.path.exists(DB_FILE):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump({"live": [], "cache": {}}, f)
-
-def read_db():
-    try:
-        with open(DB_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {"live": [], "cache": {}}
-
-def write_db(data):
-    with open(DB_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
 
 def mask_url(u):
     c = u.replace('https://','').replace('http://','').replace('www.','')
@@ -88,28 +73,23 @@ def serve_index():
 
 @app.get("/api/live")
 def get_live():
-    db = read_db()
-    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
-    write_db(db)
-    return db["live"]
+    return get_live_db()
 
 @app.get("/api")
 def home():
-    return {"status":"Tamman AI + Local Rules ✅"}
+    return {"status":"Tamman AI + SQLite Free DB ✅"}
 
 @app.post("/check")
 def check_url(data: URLCheck):
     url_raw = data.url.strip()
-    db = read_db()
 
-    if url_raw in db["cache"] and time.time() - db["cache"][url_raw]["time"] < 604800:
-        cached = db["cache"][url_raw]
-        db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": cached["is_phishing"], "time": time.time()})
-        db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
-        write_db(db)
+    # 1- شيك الكاش من SQLite
+    cached = get_cache(url_raw)
+    if cached:
+        add_live(mask_url(url_raw), url_raw, cached["is_phishing"])
         return cached
 
-    # ✅ هنا صار يستخدم ملف ai_rules.py
+    # 2- فحص محلي من ai_rules.py
     score, reasons, is_phishing_local = analyze_local(url_raw)
     
     vt_malicious, vt_total = check_virustotal(url_raw)
@@ -134,8 +114,8 @@ def check_url(data: URLCheck):
         "time": time.time()
     }
 
-    db["cache"][url_raw] = result
-    db["live"].insert(0, {"url": mask_url(url_raw), "full": url_raw, "isBad": is_phishing, "time": time.time()})
-    db["live"] = [x for x in db["live"] if time.time() - x["time"] < 60][:5]
-    write_db(db)
+    # 3- حفظ في SQLite
+    save_cache(url_raw, result)
+    add_live(mask_url(url_raw), url_raw, is_phishing)
+    
     return result
