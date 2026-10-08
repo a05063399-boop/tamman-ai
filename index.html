@@ -130,6 +130,7 @@ async function doScanLink(){
  try{
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
   let data=await r.json();
+  db["live"] = db["live"][:5]
   document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.ai_analysis||''}</small></div>`;
  }catch{ document.getElementById('outLink').innerHTML='<div class="result bad">⚠️ خطأ في الاتصال</div>'; }
  renderLive();
