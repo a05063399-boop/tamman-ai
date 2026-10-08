@@ -1,79 +1,148 @@
-<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@500;700;800&display=swap');*{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',Tahoma}body{background:#050a14;display:flex;justify-content:center}.phone{width:390px;background:radial-gradient(130% 90% at 20% 0%,#1a8a5a,#0f3d5e 30%,#081a2e 65%,#050a14);min-height:100vh;border-radius:32px;padding:18px 14px 130px;color:white;position:relative;border:1px solid #ffffff15}.top{display:flex;justify-content:space-between;align-items:center}.user{display:flex;gap:10px;align-items:center}.avatar{width:38px;height:38px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover;border:2px solid #ffffff30}.btn-lang{background:#00ff88;color:#001a0f;border:0;padding:7px 14px;border-radius:10px;font-weight:800;font-size:11px;cursor:pointer}.protect{margin:12px 0;background:#ffffff14;padding:10px 14px;border-radius:18px;font-size:11px;display:flex;gap:8px;align-items:center}.arc-wrap{position:relative;height:175px;display:flex;justify-content:center}.arc{width:200px;height:200px;border-radius:50%;border:10px solid #aaffdd;border-bottom-color:transparent;border-left-color:transparent;transform:rotate(-45deg);box-shadow:0 0 25px #00ffaa66;position:absolute;top:10px}.arc-center{position:absolute;top:55px;text-align:center}.num{font-size:32px;font-weight:800}.sub{font-size:10px;opacity:.6;margin-top:2px}.levels{display:flex;gap:7px}.lv{flex:1;background:#ffffff12;border-radius:16px;padding:10px;border:1px solid #ffffff12;text-align:center}.lv b{display:block;font-size:16px;margin-top:2px}.card{background:linear-gradient(180deg,#ffffff10,#00000050);border:1px solid #ffffff12;border-radius:20px;padding:14px;margin-top:12px}.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ffffff0e;font-size:12px}.row:last-child{border:0}.row b{color:#00ff88}.scan-box{background:#00000066;border:1px solid #ffffff18;border-radius:14px;padding:8px;display:flex;gap:8px;margin-top:10px}.scan-box input{flex:1;background:transparent;border:0;color:white;outline:none;padding:6px;font-size:13px}.btn-scan{border:0;padding:9px 16px;border-radius:10px;font-weight:800;cursor:pointer}.btn-green{background:#00ff88;color:#001a0f}.btn-purple{background:#a78bfa;color:#000}.stat-big{background:linear-gradient(180deg,#ffffff0f,#00000040);border:1px solid #ffffff12;border-radius:14px;padding:12px;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}.tag{font-size:9px;padding:3px 7px;border-radius:20px;font-weight:700}.tag-red{background:#ff444422;color:#ff6666;border:1px solid #ff4444}.tag-orange{background:#ffaa0022;color:#ffaa66;border:1px solid #ffaa00}.tag-yellow{background:#ffea0022;color:#ffee66;border:1px solid #ffee00}.page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}.warn{background:#2a1a00;border:1px solid #ffaa00;padding:10px;border-radius:12px;margin-top:10px;font-size:11px}.safe{background:#001a11;border:1px solid #00ff88;padding:10px;border-radius:12px;margin-top:10px;font-size:11px}
-.live{margin-top:14px}
-.live-title{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800;margin-bottom:8px}
-.live-item{display:flex;justify-content:space-between;align-items:center;background:#ffffff0a;border:1px solid #ffffff12;padding:10px 12px;border-radius:12px;margin-bottom:6px;animation:fade.3s}
-.live-url{font-size:11px;direction:ltr;letter-spacing:.5px}
-.live-url.masked{filter:blur(0px)} /* التضليل بالنص */
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:6px}
-.dot-green{background:#00ff88;box-shadow:0 0 8px #00ff88}
-.dot-red{background:#ff4444;box-shadow:0 0 8px #ff4444}
-.nav{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);width:360px;background:#0a1e2fcc;backdrop-filter:blur(20px);border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;border:1px solid #ffffff18;z-index:20}.nav button{background:transparent;border:0;color:white;opacity:.5;font-size:11px;cursor:pointer;padding:8px 18px;border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:2px}.nav button.active{opacity:1;background:#00ffaa22;color:#00ff88}</style></head><body><div class="phone"><div class="top"><div class="user"><div class="avatar"></div><div><small id="t0" style="opacity:.7;font-size:10px"></small><br><b id="t1" style="font-size:15px"></b></div></div><button class="btn-lang" id="bl" onclick="L=L=='ar'?'en':'ar';localStorage.setItem('lang',L);location.reload()">EN</button></div><div class="protect">🛡️ <span id="t2"></span></div>
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
+.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:16px 16px 100px;position:relative}
+.card-main{background:white;border-radius:28px;padding:22px 18px;box-shadow:0 10px 30px #00000010;border:1px solid #00000006}
+.logo{display:flex;align-items:center;justify-content:center;gap:10px;color:#0a5d2e;font-size:42px;font-weight:800}
+.logo svg{width:54px;height:54px}
+.sub-green{color:#1a8a4a;text-align:center;font-size:17px;margin:4px 0 18px;font-weight:700}
+.title{font-size:26px;font-weight:800;text-align:center;margin-bottom:6px}
+.desc{font-size:13px;opacity:.6;text-align:center;margin-bottom:16px}
+.input-box{background:#f8faf8;border:1.5px solid #c8e6c9;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.input-box input{flex:1;border:0;background:transparent;outline:none;font-size:14px;text-align:right;direction:ltr}
+.btn-main{width:100%;background:#0ca24b;color:white;border:0;padding:16px;border-radius:14px;font-size:22px;font-weight:800;margin-top:14px;cursor:pointer;box-shadow:0 6px 18px #0ca24b40}
+.tip{background:#f1f8e9;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;margin-top:14px}
+.tip b{color:#2e5d23;font-size:15px}
+.tip p{font-size:11px;opacity:.7;line-height:1.4}
+.live-head{display:flex;justify-content:space-between;margin:18px 4px 10px;font-weight:800;font-size:15px}
+.live-head a{color:#0ca24b;font-size:13px;text-decoration:none}
+.live-item{background:white;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #00000008;animation:fade .3s}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.icon-ok{width:32px;height:32px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0ca24b;font-weight:800}
+.icon-warn{width:32px;height:32px;background:#fff3e0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ff9800;font-weight:800}
+.url{font-size:12px;direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;margin-top:2px;display:inline-block}
+.badge-ok{background:#e8f5e9;color:#1b8a4a}
+.badge-bad{background:#fff3e0;color:#e67e00}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015;border:1px solid #00000008}
+.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.nav button.active{color:#0ca24b}
+.result{margin-top:12px;padding:12px;border-radius:12px;font-size:13px}
+.result.safe{background:#e8f5e9;border:1px solid #0ca24b;color:#0a5d2e}
+.result.bad{background:#ffebee;border:1px solid #ff4444;color:#7a1a1a}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="card-main">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>
+      طمّن
+    </div>
+    <div class="sub-green">فحص الروابط المشبوهة</div>
+    <div class="title">مرحباً</div>
+    <div class="desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
 
-<div id="p1" class="page active"><div class="arc-wrap"><div class="arc"></div><div class="arc-center"><div class="num">365<small style="font-size:12px;opacity:.7">/day</small></div><div class="sub" id="t3"></div></div></div><div class="levels"><div class="lv"><span id="l1"></span><br><b style="color:#ff6666">89</b></div><div class="lv" style="border-color:#00ffaa"><span id="l2"></span><br><b style="color:#ffaa66">95</b></div><div class="lv"><span id="l3"></span><br><b>150</b></div></div><div class="card"><b id="t5"></b><div style="margin-top:10px"><div class="stat-big"><span>🔴 <span id="s1"></span></span><span><b style="color:#ff6666">89</b> <span class="tag tag-red">CRITICAL</span></span></div><div class="stat-big"><span>🟠 <span id="s2"></span></span><span><b style="color:#ffaa66">95</b> <span class="tag tag-orange">HIGH</span></span></div><div class="stat-big"><span>🟡 <span id="s3"></span></span><span><b>150</b> <span class="tag tag-yellow">MEDIUM</span></span></div></div><div class="row"><span id="d1"></span><b>550</b></div><div class="row"><span id="d2"></span><b>1,570</b></div><div class="row"><span id="d3"></span><b>6,102</b></div></div><div class="card"><b id="t6"></b><div class="scan-box"><input id="urlIn" placeholder="www.ptomodiskon.net"><button class="btn-scan btn-green" onclick="doScanLink()">افحص</button></div><div id="outLink"></div>
-<div class="live"><div class="live-title"><span id="liveTitle">آخر الفحوصات المباشرة</span><span style="font-size:10px;opacity:.5">Live</span></div><div id="liveList"></div></div>
-</div></div>
+    <div class="input-box">
+      <span>🔗</span>
+      <input id="urlIn" placeholder="الصق الرابط هنا...">
+    </div>
+    <button class="btn-main" onclick="doScan()">افحص الآن</button>
+    <div id="out"></div>
 
-<div id="p2" class="page"><div class="arc-wrap"><div class="arc" style="border-color:#a78bfa;box-shadow:0 0 25px #a78bfa66"></div><div class="arc-center"><div class="num">284<small style="font-size:12px;opacity:.7">/day</small></div><div class="sub" id="t3p"></div></div></div><div class="card"><b id="t6p"></b><p id="t6pd" style="opacity:.6;font-size:10px;margin-top:4px"></p><div class="scan-box"><input id="phoneIn" placeholder="+966 5X XXX XXXX"><button class="btn-scan btn-purple" onclick="doScanPhone()">افحص</button></div><div id="outPhone"></div>
-<div class="live"><div class="live-title"><span id="liveTitle2">آخر فحوصات الأرقام</span><span style="font-size:10px;opacity:.5">Live</span></div><div id="liveList2"></div></div>
-</div></div>
+    <div class="tip">
+      <div style="background:#e8f5e9;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center">🛡️</div>
+      <div>
+        <b>نصيحة أمنية</b>
+        <p>تجنّب الروابط المختصرة المجهولة واحرص على التحقق قبل الفتح</p>
+      </div>
+    </div>
+  </div>
 
-<div class="nav"><button id="b1" class="active" onclick="go(1)">🔗<span id="n1"></span></button><button id="b2" onclick="go(2)">📱<span id="n2"></span></button></div></div><script>let L=localStorage.getItem('lang')||'ar';const T={ar:{t0:"مرحبا بعودتك",t1:"طَمّن",t2:"حماية AI CyberGuard نشطة",t3:"اجمالي الروابط المفحوصة",t3p:"اجمالي الارقام المفحوصة",l1:"حرج",l2:"عالي",l3:"متوسط",l1p:"احتيال",l2p:"مزعج",l3p:"مشبوه",t5:"تفاصيل الروابط",t5p:"تفاصيل الارقام",d1:"فحص يومي",d2:"فحص اسبوعي",d3:"فحص شهري",t6:"افحص رابطك",t6p:"افحص رقم الجوال",t6pd:"اكتب رقم الجوال المشبوه",n1:"الروابط",n2:"الجوال",b:"EN",warnL:"⚠️ رابط تصيد! لا تفتحه",safeL:"✅ رابط آمن",warnP:"⚠️ رقم احتيال! لا ترد",safeP:"✅ رقم آمن",s1:"روابط بنوك وهمية",s2:"عروض وهمية",s3:"روابط مشبوهة",live:"آخر الفحوصات المباشرة",live2:"آخر فحوصات الأرقام"},en:{t0:"Welcome Back",t1:"CyberGuard",t2:"AI Protection Active",t3:"Total Links Scanned",t3p:"Total Numbers Scanned",l1:"Critical",l2:"High",l3:"Medium",t5:"Links Details",t5p:"Numbers Details",d1:"Daily",d2:"Weekly",d3:"Monthly",t6:"Scan Your Link",t6p:"Scan Phone Number",t6pd:"Enter suspicious number",n1:"Links",n2:"Phones",b:"عربي",warnL:"⚠️ Phishing! Don't open",safeL:"✅ Safe Link",warnP:"⚠️ Scam Number!",safeP:"✅ Safe Number",s1:"Fake bank links",s2:"Fake offers",s3:"Suspicious",live:"Live Scans",live2:"Live Phone Scans"}};let d=T[L];document.dir=L=='ar'?'rtl':'ltr';for(let k in d){let e=document.getElementById(k);if(e)e.innerText=d[k]}document.getElementById('bl').innerText=d.b;function go(n){document.getElementById('p1').classList.toggle('active',n==1);document.getElementById('p2').classList.toggle('active',n==2);document.getElementById('b1').classList.toggle('active',n==1);document.getElementById('b2').classList.toggle('active',n==2)}
-function maskUrl(url){ // يضلل نص الرابط
- try{let u=url.replace('https://','').replace('http://',''); if(u.length<10) return u.substring(0,2)+'****'; return u.substring(0,4)+'****'+u.substring(u.length-4);}catch{return url.substring(0,3)+'****'}
+  <div class="live-head"><span>آخر الفحوصات</span><a href="#" onclick="renderLive()">عرض الكل</a></div>
+  <div id="liveList"><div style="text-align:center;opacity:.4;font-size:12px;padding:20px">جاري تحميل الفحوصات المباشرة...</div></div>
+</div>
+
+<div class="nav">
+  <button class="active">🛡️<span>الرئيسية</span></button>
+  <button onclick="renderLive()">🕒<span>الفحوصات</span></button>
+  <button>📱<span>الحماية</span></button>
+  <button>⚙️<span>الإعدادات</span></button>
+</div>
+
+<script>
+const API = ""; // يشتغل على نفس رابط render
+
+function maskUrl(u){
+  try{
+    let clean = u.replace('https://','').replace('http://','');
+    if(clean.length < 12) return clean.slice(0,2)+"****"+clean.slice(-3);
+    return clean.slice(0,12)+"****"+clean.slice(-4);
+  }catch{return u.slice(0,5)+"****"}
 }
-function maskPhone(p){ return p.substring(0,4)+'****'+p.substring(p.length-2); }
 
-function addLive(url,isBad){
- let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
- hist.unshift({url:maskUrl(url),isBad,time:Date.now()});
- hist=hist.slice(0,5); // بس 5 اسطر
- localStorage.setItem('tammen_live',JSON.stringify(hist));
- renderLive();
+async function renderLive(){
+  try{
+    let r = await fetch(API+'/api/live');
+    let data = await r.json();
+    if(!data.length){
+      document.getElementById('liveList').innerHTML = '<div style="text-align:center;opacity:.4;font-size:12px;padding:20px">لا يوجد فحوصات حاليا</div>';
+      return;
+    }
+    document.getElementById('liveList').innerHTML = data.map(h=>`
+      <div class="live-item">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="${h.isBad?'icon-warn':'icon-ok'}">${h.isBad?'!':'✓'}</div>
+          <div>
+            <div class="url">${h.url}</div>
+            <div style="font-size:11px;opacity:.6">تم الفحص قبل ثواني • <span class="${h.isBad?'badge-bad':'badge-ok'} badge">${h.isBad?'مشبوه':'آمن'}</span></div>
+          </div>
+        </div>
+        <div class="dot" style="background:${h.isBad?'#ff9800':'#0ca24b'}"></div>
+      </div>
+    `).join('');
+  }catch(e){
+    // لو الباك اند مو شغال، طلع من localStorage
+    let hist = JSON.parse(localStorage.getItem('tammen_live')||'[]');
+    document.getElementById('liveList').innerHTML = hist.slice(0,5).map(h=>`
+      <div class="live-item">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="${h.isBad?'icon-warn':'icon-ok'}">${h.isBad?'!':'✓'}</div>
+          <div><div class="url">${h.url}</div><div class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</div></div>
+        </div>
+      </div>
+    `).join('') || '<div style="text-align:center;opacity:.4;font-size:12px;padding:20px">لا يوجد فحوصات</div>';
+  }
 }
-function addLivePhone(phone,isBad){
- let hist=JSON.parse(localStorage.getItem('tammen_live_phone')||'[]');
- hist.unshift({url:maskPhone(phone),isBad,time:Date.now()});
- hist=hist.slice(0,5);
- localStorage.setItem('tammen_live_phone',JSON.stringify(hist));
- renderLive();
-}
-function renderLive(){
- let list=document.getElementById('liveList'); let list2=document.getElementById('liveList2');
- let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
- // احذف اللي مر عليه اكثر من 5 دقايق
- hist=hist.filter(h=>Date.now()-h.time < 5*60*1000);
- localStorage.setItem('tammen_live',JSON.stringify(hist));
- list.innerHTML=hist.map(h=>`<div class=live-item><span class=live-url><span class="dot ${h.isBad?'dot-red':'dot-green'}"></span>${h.url}</span><span class="tag ${h.isBad?'tag-red':'tag-green'}" style="background:${h.isBad?'#ff444422':'#00ff8822'};color:${h.isBad?'#ff6666':'#00ff88'};border:1px solid ${h.isBad?'#ff4444':'#00ff88'}">${h.isBad?'غير آمن':'آمن'}</span></div>`).join('')||'<div style="opacity:.4;font-size:11px;text-align:center;padding:10px">لا يوجد فحوصات حاليا</div>';
+setInterval(renderLive, 5000); // تحديث كل 5 ثواني لايف
+renderLive();
 
- let hist2=JSON.parse(localStorage.getItem('tammen_live_phone')||'[]');
- hist2=hist2.filter(h=>Date.now()-h.time < 5*60*1000);
- localStorage.setItem('tammen_live_phone',JSON.stringify(hist2));
- if(list2) list2.innerHTML=hist2.map(h=>`<div class=live-item><span class=live-url><span class="dot ${h.isBad?'dot-red':'dot-green'}"></span>${h.url}</span><span class="tag ${h.isBad?'tag-red':'tag-green'}" style="background:${h.isBad?'#ff444422':'#00ff8822'};color:${h.isBad?'#ff6666':'#00ff88'};border:1px solid ${h.isBad?'#ff4444':'#00ff88'}">${h.isBad?'احتيال':'آمن'}</span></div>`).join('')||'<div style="opacity:.4;font-size:11px;text-align:center;padding:10px">لا يوجد فحوصات حاليا</div>';
-}
-setInterval(renderLive,10000); renderLive();
-
-async function doScanLink(){
- let v=document.getElementById('urlIn').value.trim(); if(!v) return;
- let out=document.getElementById('outLink'); out.innerHTML='<div class=safe>⏳ جاري الفحص عبر طَمّن AI...</div>';
- try{
-  let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
-  let data=await r.json(); let isBad=data.is_phishing; let cls=isBad?'warn':'safe'; let title=isBad?d.warnL:d.safeL;
-  out.innerHTML=`<div class=${cls}><b>${title}</b><br><small>${data.url}</small><br><small>الدرجة: ${data.score}</small></div>`;
-  addLive(v,isBad);
- }catch(e){ // فحص وهمي اذا السيرفر مو شغال
-  let isBad=v.includes('xyz')||v.includes('short')||v.length>30; let cls=isBad?'warn':'safe'; let title=isBad?d.warnL:d.safeL;
-  document.getElementById('outLink').innerHTML=`<div class=${cls}><b>${title}</b><br><small>${v}</small></div>`;
-  addLive(v,isBad);
- }
-}
-function doScanPhone(){
- let v=document.getElementById('phoneIn').value.trim();if(!v)return;
- let bad=v.includes('000')||v.length>12||v.startsWith('+44')||v.startsWith('+1');
- document.getElementById('outPhone').innerHTML=bad?`<div class=warn>${d.warnP}<br><small>${v}</small></div>`:`<div class=safe>${d.safeP}<br><small>${v}</small></div>`;
- addLivePhone(v,bad);
-}</script></body></html>
+async function doScan(){
+  let v = document.getElementById('urlIn').value.trim();
+  if(!v) return alert('الصق رابط اول');
+  let out = document.getElementById('out');
+  out.innerHTML = '<div class="result safe">⏳ جاري الفحص عبر طَمّن AI...</div>';
+  try{
+    let r = await fetch(API+'/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
+    let data = await r.json();
+    out.innerHTML = `<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ رابط مشبوه! لا تفتحه':'✅ رابط آمن'}<br><small>${data.url}</small></div>`;
+  }catch{
+    let bad = v.includes('short')||v.includes('xyz');
+    out.innerHTML = `<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن - فحص محلي'}<br><small>${v}</small></div>`;
+    // حفظ محلي
+    let hist = JSON.parse(localStorage.getItem('tammen_live')||'[]');
+    hist.unshift({url:maskUrl(v),isBad:bad,time:Date.now()});
+    localStorage.setItem('tammen_live',JSON.stringify(hist.slice(0,5)));
+  }
+  renderLive();
 }
 </script>
-
 </body>
 </html>
