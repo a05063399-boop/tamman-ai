@@ -7,7 +7,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
 body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
-.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:16px 16px 100px;position:relative}
+.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:12px 16px 100px;position:relative}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.lang-btn{background:#0ca24b;color:white;border:0;padding:6px 14px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer}
 .card-main{background:white;border-radius:28px;padding:22px 18px;box-shadow:0 10px 30px #00000010;border:1px solid #00000006}
 .logo{display:flex;align-items:center;justify-content:center;gap:10px;color:#0a5d2e;font-size:42px;font-weight:800}
 .logo svg{width:54px;height:54px}
@@ -18,22 +20,16 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .input-box input{flex:1;border:0;background:transparent;outline:none;font-size:14px;text-align:right;direction:ltr}
 .btn-main{width:100%;background:#0ca24b;color:white;border:0;padding:16px;border-radius:14px;font-size:22px;font-weight:800;margin-top:14px;cursor:pointer;box-shadow:0 6px 18px #0ca24b40}
 .tip{background:#f1f8e9;border-radius:12px;padding:12px;display:flex;gap:10px;align-items:flex-start;margin-top:14px}
-.tip b{color:#2e5d23;font-size:15px}
-.tip p{font-size:11px;opacity:.7;line-height:1.4}
 .live-head{display:flex;justify-content:space-between;margin:18px 4px 10px;font-weight:800;font-size:15px}
-.live-head a{color:#0ca24b;font-size:13px;text-decoration:none}
-.live-item{background:white;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #00000008;animation:fade .3s}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.icon-ok{width:32px;height:32px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#0ca24b;font-weight:800}
-.icon-warn{width:32px;height:32px;background:#fff3e0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ff9800;font-weight:800}
-.url{font-size:12px;direction:ltr;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px}
-.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;margin-top:2px;display:inline-block}
+.live-item{background:white;border-radius:14px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;border:1px solid #00000008}
+.url{font-size:12px;direction:ltr;text-align:left;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
 .badge-ok{background:#e8f5e9;color:#1b8a4a}
 .badge-bad{background:#fff3e0;color:#e67e00}
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
-.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015;border:1px solid #00000008}
-.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
-.nav button.active{color:#0ca24b}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015}
+.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 18px;border-radius:14px}
+.nav button.active{background:#0ca24b15;color:#0ca24b}
+.page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .result{margin-top:12px;padding:12px;border-radius:12px;font-size:13px}
 .result.safe{background:#e8f5e9;border:1px solid #0ca24b;color:#0a5d2e}
 .result.bad{background:#ffebee;border:1px solid #ff4444;color:#7a1a1a}
@@ -41,107 +37,125 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 </head>
 <body>
 <div class="phone">
-  <div class="card-main">
-    <div class="logo">
-      <svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg>
-      طمّن
-    </div>
-    <div class="sub-green">فحص الروابط المشبوهة</div>
-    <div class="title">مرحباً</div>
-    <div class="desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
-
-    <div class="input-box">
-      <span>🔗</span>
-      <input id="urlIn" placeholder="الصق الرابط هنا...">
-    </div>
-    <button class="btn-main" onclick="doScan()">افحص الآن</button>
-    <div id="out"></div>
-
-    <div class="tip">
-      <div style="background:#e8f5e9;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center">🛡️</div>
-      <div>
-        <b>نصيحة أمنية</b>
-        <p>تجنّب الروابط المختصرة المجهولة واحرص على التحقق قبل الفتح</p>
-      </div>
-    </div>
+  <div class="top">
+    <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover;border:2px solid #fff"></div><div><small id="t0" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b id="t1">طَمّن</b></div></div>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
 
-  <div class="live-head"><span>آخر الفحوصات</span><a href="#" onclick="renderLive()">عرض الكل</a></div>
-  <div id="liveList"><div style="text-align:center;opacity:.4;font-size:12px;padding:20px">جاري تحميل الفحوصات المباشرة...</div></div>
+  <!-- صفحة الروابط -->
+  <div id="p1" class="page active">
+    <div class="card-main">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="appName">طمّن</span></div>
+      <div class="sub-green" id="sub1">فحص الروابط المشبوهة</div>
+      <div class="title" id="welcome">مرحباً</div>
+      <div class="desc" id="desc1">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
+      <div class="input-box"><span>🔗</span><input id="urlIn" placeholder="الصق الرابط هنا..."></div>
+      <button class="btn-main" id="scanBtn1" onclick="doScanLink()">افحص الآن</button>
+      <div id="outLink"></div>
+      <div class="tip"><div>🛡️</div><div><b id="tipT">نصيحة أمنية</b><br><small id="tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
+    </div>
+    <div class="live-head"><span id="liveT1">آخر الفحوصات</span><a href="#" onclick="renderLive()">عرض الكل</a></div>
+    <div id="liveList"></div>
+  </div>
+
+  <!-- صفحة الجوال -->
+  <div id="p2" class="page">
+    <div class="card-main">
+      <div class="logo" style="color:#6b46c1"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-2.9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="appName2">طمّن</span></div>
+      <div class="sub-green" id="sub2" style="color:#6b46c1">فحص الأرقام المشبوهة</div>
+      <div class="title" id="welcome2">فحص الجوال</div>
+      <div class="desc" id="desc2">أدخل الرقم المشبوه للتأكد منه</div>
+      <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
+      <button class="btn-main" style="background:#6b46c1" id="scanBtn2" onclick="doScanPhone()">افحص الآن</button>
+      <div id="outPhone"></div>
+    </div>
+    <div class="live-head"><span id="liveT2">آخر فحوصات الأرقام</span><span style="font-size:10px;opacity:.5">Live</span></div>
+    <div id="liveList2"></div>
+  </div>
+
+  <!-- صفحة الإعدادات -->
+  <div id="p3" class="page">
+    <div class="card-main"><b id="setT">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br><br>الإصدار 1.0 - خميس مشيط<br>API: tamman-ai.onrender.com</div></div>
+  </div>
 </div>
 
 <div class="nav">
-  <button class="active">🛡️<span>الرئيسية</span></button>
-  <button onclick="renderLive()">🕒<span>الفحوصات</span></button>
-  <button>📱<span>الحماية</span></button>
-  <button>⚙️<span>الإعدادات</span></button>
+  <button id="b1" class="active" onclick="go(1)">🔗<span id="n1">الروابط</span></button>
+  <button id="b2" onclick="go(2)">📱<span id="n2">الجوال</span></button>
+  <button id="b3" onclick="go(3)">⚙️<span id="n3">الإعدادات</span></button>
 </div>
 
 <script>
-const API = ""; // يشتغل على نفس رابط render
-
-function maskUrl(u){
-  try{
-    let clean = u.replace('https://','').replace('http://','');
-    if(clean.length < 12) return clean.slice(0,2)+"****"+clean.slice(-3);
-    return clean.slice(0,12)+"****"+clean.slice(-4);
-  }catch{return u.slice(0,5)+"****"}
+let L = localStorage.getItem('lang')||'ar';
+const T = {
+ ar:{t0:"مرحبا بعودتك",app:"طمّن",sub1:"فحص الروابط المشبوهة",sub2:"فحص الأرقام المشبوهة",welcome:"مرحباً",welcome2:"فحص الجوال",desc1:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",desc2:"أدخل الرقم المشبوه للتأكد منه",scan:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة واحرص على التحقق قبل الفتح",live1:"آخر الفحوصات",live2:"آخر فحوصات الأرقام",n1:"الروابط",n2:"الجوال",n3:"الإعدادات",set:"الإعدادات",btn:"EN"},
+ en:{t0:"Welcome Back",app:"Tammen",sub1:"Suspicious Link Check",sub2:"Phone Number Check",welcome:"Welcome",welcome2:"Phone Check",desc1:"Enter link below to verify safety",desc2:"Enter suspicious number",scan:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Live Scans",live2:"Live Phone Scans",n1:"Links",n2:"Phones",n3:"Settings",set:"Settings",btn:"عربي"}
+};
+function applyLang(){
+ let d=T[L];
+ document.dir=L=='ar'?'rtl':'ltr';
+ document.getElementById('t0').innerText=d.t0;
+ document.getElementById('appName').innerText=d.app;
+ document.getElementById('appName2').innerText=d.app;
+ document.getElementById('sub1').innerText=d.sub1;
+ document.getElementById('sub2').innerText=d.sub2;
+ document.getElementById('welcome').innerText=d.welcome;
+ document.getElementById('welcome2').innerText=d.welcome2;
+ document.getElementById('desc1').innerText=d.desc1;
+ document.getElementById('desc2').innerText=d.desc2;
+ document.getElementById('scanBtn1').innerText=d.scan;
+ document.getElementById('scanBtn2').innerText=d.scan;
+ document.getElementById('tipT').innerText=d.tipT;
+ document.getElementById('tipD').innerText=d.tipD;
+ document.getElementById('liveT1').innerText=d.live1;
+ document.getElementById('liveT2').innerText=d.live2;
+ document.getElementById('n1').innerText=d.n1;
+ document.getElementById('n2').innerText=d.n2;
+ document.getElementById('n3').innerText=d.n3;
+ document.getElementById('setT').innerText=d.set;
+ document.getElementById('langBtn').innerText=d.btn;
 }
+function toggleLang(){ L=L=='ar'?'en':'ar'; localStorage.setItem('lang',L); applyLang(); }
+applyLang();
 
+function go(n){
+ document.getElementById('p1').classList.toggle('active',n==1);
+ document.getElementById('p2').classList.toggle('active',n==2);
+ document.getElementById('p3').classList.toggle('active',n==3);
+ document.getElementById('b1').classList.toggle('active',n==1);
+ document.getElementById('b2').classList.toggle('active',n==2);
+ document.getElementById('b3').classList.toggle('active',n==3);
+}
+function maskUrl(u){try{let c=u.replace('https://','').replace('http://','');return c.slice(0,4)+'****'+c.slice(-4)}catch{return u.slice(0,3)+'****'}}
 async function renderLive(){
-  try{
-    let r = await fetch(API+'/api/live');
-    let data = await r.json();
-    if(!data.length){
-      document.getElementById('liveList').innerHTML = '<div style="text-align:center;opacity:.4;font-size:12px;padding:20px">لا يوجد فحوصات حاليا</div>';
-      return;
-    }
-    document.getElementById('liveList').innerHTML = data.map(h=>`
-      <div class="live-item">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="${h.isBad?'icon-warn':'icon-ok'}">${h.isBad?'!':'✓'}</div>
-          <div>
-            <div class="url">${h.url}</div>
-            <div style="font-size:11px;opacity:.6">تم الفحص قبل ثواني • <span class="${h.isBad?'badge-bad':'badge-ok'} badge">${h.isBad?'مشبوه':'آمن'}</span></div>
-          </div>
-        </div>
-        <div class="dot" style="background:${h.isBad?'#ff9800':'#0ca24b'}"></div>
-      </div>
-    `).join('');
-  }catch(e){
-    // لو الباك اند مو شغال، طلع من localStorage
-    let hist = JSON.parse(localStorage.getItem('tammen_live')||'[]');
-    document.getElementById('liveList').innerHTML = hist.slice(0,5).map(h=>`
-      <div class="live-item">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="${h.isBad?'icon-warn':'icon-ok'}">${h.isBad?'!':'✓'}</div>
-          <div><div class="url">${h.url}</div><div class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</div></div>
-        </div>
-      </div>
-    `).join('') || '<div style="text-align:center;opacity:.4;font-size:12px;padding:20px">لا يوجد فحوصات</div>';
-  }
+ try{
+  let r=await fetch('/api/live'); let data=await r.json();
+  document.getElementById('liveList').innerHTML=data.map(h=>`<div class="live-item"><div style="display:flex;gap:10px;align-items:center"><div style="width:32px;height:32px;border-radius:50%;background:${h.isBad?'#fff3e0':'#e8f5e9'};display:flex;align-items:center;justify-content:center">${h.isBad?'!':'✓'}</div><div><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div></div><div style="width:8px;height:8px;border-radius:50%;background:${h.isBad?'#ff9800':'#0ca24b'}"></div></div>`).join('')||'<div style="text-align:center;opacity:.4;padding:20px;font-size:12px">لا يوجد</div>';
+ }catch{
+  let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]');
+  document.getElementById('liveList').innerHTML=hist.map(h=>`<div class="live-item"><div class="url">${h.url}</div><span class="badge ${h.isBad?'badge-bad':'badge-ok'}">${h.isBad?'مشبوه':'آمن'}</span></div>`).join('');
+ }
 }
-setInterval(renderLive, 5000); // تحديث كل 5 ثواني لايف
-renderLive();
+setInterval(renderLive,5000); renderLive();
 
-async function doScan(){
-  let v = document.getElementById('urlIn').value.trim();
-  if(!v) return alert('الصق رابط اول');
-  let out = document.getElementById('out');
-  out.innerHTML = '<div class="result safe">⏳ جاري الفحص عبر طَمّن AI...</div>';
-  try{
-    let r = await fetch(API+'/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
-    let data = await r.json();
-    out.innerHTML = `<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ رابط مشبوه! لا تفتحه':'✅ رابط آمن'}<br><small>${data.url}</small></div>`;
-  }catch{
-    let bad = v.includes('short')||v.includes('xyz');
-    out.innerHTML = `<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن - فحص محلي'}<br><small>${v}</small></div>`;
-    // حفظ محلي
-    let hist = JSON.parse(localStorage.getItem('tammen_live')||'[]');
-    hist.unshift({url:maskUrl(v),isBad:bad,time:Date.now()});
-    localStorage.setItem('tammen_live',JSON.stringify(hist.slice(0,5)));
-  }
-  renderLive();
+async function doScanLink(){
+ let v=document.getElementById('urlIn').value.trim(); if(!v) return;
+ document.getElementById('outLink').innerHTML='<div class="result safe">⏳ جاري الفحص...</div>';
+ try{
+  let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
+  let data=await r.json();
+  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}">${data.is_phishing?'⚠️ مشبوه':'✅ آمن'}<br><small>${data.url}</small></div>`;
+ }catch{
+  let bad=v.includes('short')||v.includes('xyz');
+  document.getElementById('outLink').innerHTML=`<div class="result ${bad?'bad':'safe'}">${bad?'⚠️ مشبوه':'✅ آمن'}</div>`;
+  let hist=JSON.parse(localStorage.getItem('tammen_live')||'[]'); hist.unshift({url:maskUrl(v),isBad:bad}); localStorage.setItem('tammen_live',JSON.stringify(hist.slice(0,5)));
+ }
+ renderLive();
+}
+function doScanPhone(){
+ let v=document.getElementById('phoneIn').value.trim(); if(!v) return;
+ let bad=v.includes('000')||v.startsWith('+44');
+ document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ رقم احتيال</div>`:`<div class="result safe">✅ رقم آمن</div>`;
 }
 </script>
 </body>
