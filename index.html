@@ -41,14 +41,13 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
     <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t-hello" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b id="t-topName">طَمّن</b></div></div>
     <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
-
   <div id="p1" class="page active">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="logoTxt1">طَمّن</span></div>
       <div class="sub-green" id="t-scan">فحص الروابط المشبوهة</div>
       <div class="title" id="t-welcome">مرحباً</div>
       <div class="desc" id="t-desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
-      <div class="input-box"><span>🔗</span><input id="urlIn" placeholder="الصق الرابط هنا..."></div>
+      <div class="input-box"><span>🔗</span><input id="urlIn" type="text" inputmode="url" placeholder="الصق الرابط هنا..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onfocus="this.select()"></div>
       <button class="btn-main" id="t-btn1" onclick="doScanLink()">افحص الآن</button>
       <div id="outLink"></div>
       <div class="tip"><div>🛡️</div><div><b id="t-tipT">نصيحة أمنية</b><br><small id="t-tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
@@ -56,25 +55,22 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
     <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
-
   <div id="p2" class="page">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-1 0-1 0v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="logoTxt2">طَمّن</span></div>
       <div class="sub-green" style="color:#6b46c1" id="t-phoneT">فحص الأرقام</div>
-      <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
+      <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX" autocomplete="off" autocorrect="off" spellcheck="false" onfocus="this.select()"></div>
       <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
       <div id="outPhone"></div>
     </div>
   </div>
   <div id="p3" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0</div></div></div>
 </div>
-
 <div class="nav">
   <button id="b1" class="active" onclick="go(1)">🔗<span id="t-nav1">الروابط</span></button>
   <button id="b2" onclick="go(2)">📱<span id="t-nav2">الجوال</span></button>
   <button id="b3" onclick="go(3)">⚙️<span id="t-nav3">الإعدادات</span></button>
 </div>
-
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
@@ -127,8 +123,33 @@ async function renderLive(){
  }catch{}
 }
 setInterval(renderLive,5000); renderLive(); applyLang();
+
+const urlIn = document.getElementById('urlIn');
+urlIn.addEventListener('paste', (e) => {
+  e.preventDefault();
+  let text = (e.clipboardData || window.clipboardData).getData('text').trim();
+  let m = text.match(/(https?:\/\/[^\s\u0600-\u06FF]+)/i);
+  if(m) text = m[1];
+  else text = text.replace(/افحص الآن/g,'').replace(/نصيحة أمنية/g,'').replace(/نصيا/g,'').trim();
+  urlIn.value = text;
+});
+urlIn.addEventListener('focus', () => {
+  if(/افحص|نصيحة|أمنية|نصيا/.test(urlIn.value)) urlIn.value = '';
+});
+urlIn.addEventListener('input', () => {
+  let v = urlIn.value;
+  if(v.includes('افحص') || v.includes('نصيحة')){
+    let m = v.match(/(https?:\/\/[^\s]+)/i);
+    if(m) urlIn.value = m[1];
+  }
+});
+
 async function doScanLink(){
- let v=document.getElementById('urlIn').value.trim(); if(!v) return;
+ let v=document.getElementById('urlIn').value.trim();
+ let mm = v.match(/(https?:\/\/[^\s]+)/i);
+ if(mm) v = mm[1];
+ v = v.replace(/افحص الآن/g,'').replace(/نصيحة أمنية/g,'').trim();
+ if(!v) return;
  document.getElementById('outLink').innerHTML=`<div class="result safe">${T[L].scanning}</div>`;
  try{
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
