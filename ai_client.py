@@ -1,6 +1,7 @@
 import os
 import google.generativeai as genai
 
+# يقرا المفتاح من Render فقط
 RAW_KEYS = os.getenv("GEMINI_API_KEY", "")
 GEMINI_KEYS = [k.strip() for k in RAW_KEYS.split(",") if k.strip()]
 current_key_index = 0
@@ -11,6 +12,7 @@ chat_model = None
 def init_gemini():
     global model, chat_model, current_key_index
     if not GEMINI_KEYS:
+        print("No GEMINI_API_KEY found")
         return False
     try:
         key = GEMINI_KEYS[current_key_index % len(GEMINI_KEYS)]
@@ -21,8 +23,12 @@ def init_gemini():
             system_instruction="""
 انت طمّن AI - مساعد سعودي ذكي وودود جداً.
 لهجتك سعودية عامية خفيفة، محترمة ومرحة.
-ذكي جداً، تجاوب على كل شي: أمان سيبراني، تقنية، معلومات عامة.
-ردودك قصيرة 2-4 أسطر، مفيدة، وفيها لمسة ذكاء.
+ذكي جداً، تجاوب على كل شي: أمان سيبراني، تقنية، معلومات عامة، سوالف.
+لا تكرر نفس الرد أبداً.
+- اذا قال "كيف احمي نفسي": اشرح 4 خطوات عملية مختصرة مع ايموجي.
+- اذا قال "احبك": "وانا احبك أكثر ❤️ بس لا تعطي قلبك ولا بياناتك لنصاب 😅"
+- اذا سأل عن رابط: قله يحطه في تبويب الروابط فوق.
+- ردودك قصيرة 2-4 أسطر.
 """
         )
         return True
@@ -43,7 +49,7 @@ def ask_gemini(prompt: str) -> str:
             res = model.generate_content(prompt)
             return res.text.strip()
         except Exception as e:
-            print(f"Gemini error: {e}")
+            print(f"Gemini error key {current_key_index}: {e}")
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
             init_gemini()
     return ""
@@ -64,7 +70,7 @@ def chat_with_tamman(user_message: str, history=[]):
             res = chat.send_message(user_message)
             return res.text.strip()
         except Exception as e:
-            print(f"Gemini chat error: {e}")
+            print(f"Gemini chat error key {current_key_index}: {e}")
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
             init_gemini()
     return fallback_smart(user_message)
@@ -72,8 +78,9 @@ def chat_with_tamman(user_message: str, history=[]):
 def fallback_smart(msg):
     ml = msg.lower()
     if "احمي" in ml:
-        return "حمايتك بسيطة 🛡️\n1- لا تفتح أي رابط غريب\n2- فعل التحقق بخطوتين\n3- لا تشارك كود OTP أبداً\n4- افحص أي شي شاك فيه في طمّن"
-    if "احبك" in ml:
-        return "وأنا أحبك أكثر ❤️ بس لا تعطي قلبك ولا بياناتك لنصاب 😅"
+        return "حمايتك بسيطة 🛡️\n1- لا تفتح أي رابط غريب\n2- فعل التحقق بخطوتين\n3- لا تشارك كود OTP أبداً\n4- افحص أي شي شاك فيه في طمّن فوق"
+    if "احبك" in ml or "حبك" in ml:
+        return "حبيبي وأنا أحبك أكثر ❤️ بس انتبه لا تعطي معلوماتك لأحد 😉"
+    if "هلا" in ml or "سلام" in ml:
+        return "هلااا والله وغلا فيك 👋 نورت طمّن! تبيني أفحص لك رابط ولا أعطيك نصيحة؟"
     return "حياك يا بطل! أنا طمّن AI 🤖 أقدر أساعدك في الحماية وأي سؤال. وش عندك؟"
-    
