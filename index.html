@@ -26,7 +26,7 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
 .badge-ok{background:#e8f5e9;color:#1b8a4a}
 .badge-bad{background:#fff3e0;color:#e67e00}
-.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015;z-index:9998}
 .nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 18px;border-radius:14px}
 .nav button.active{background:#0ca24b15;color:#0ca24b}
 .page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
@@ -37,6 +37,18 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .ai-box h4{font-size:15px;margin-bottom:8px;color:#0a5d2e}
 .ai-row{font-size:12px;margin-bottom:6px;line-height:1.6}
 .ai-row b{color:#0a5d2e}
+/* شات طمّن */
+#chatBtn{position:fixed;bottom:85px;left:18px;background:#0ca24b;color:white;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;box-shadow:0 8px 20px #0ca24b50;z-index:9999;animation:pulse 2s infinite}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+#chatBox{display:none;position:fixed;bottom:150px;left:16px;width:350px;max-width:92vw;height:440px;background:white;border-radius:22px;box-shadow:0 15px 40px #00000020;z-index:10000;flex-direction:column;overflow:hidden;border:1px solid #00000008}
+#chatHeader{background:#0ca24b;color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
+#chatMessages{flex:1;overflow-y:auto;padding:12px;background:#f6faf6;display:flex;flex-direction:column;gap:8px}
+.chat-msg{padding:9px 12px;border-radius:14px;font-size:13px;max-width:80%;line-height:1.6}
+.chat-user{background:#0ca24b;color:white;align-self:flex-end;border-bottom-right-radius:4px}
+.chat-ai{background:white;align-self:flex-start;border:1px solid #00000008;box-shadow:0 1px 3px #00000008;border-bottom-left-radius:4px}
+#chatInputRow{display:flex;padding:8px;border-top:1px solid #eee;gap:6px;background:white}
+#chatInput{flex:1;border:1.5px solid #c8e6c9;border-radius:20px;padding:9px 12px;outline:none;font-size:13px}
+#chatSend{background:#0ca24b;color:white;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-weight:800}
 </style>
 </head>
 <body>
@@ -68,13 +80,26 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
       <div id="outPhone"></div>
     </div>
   </div>
-  <div id="p3" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0 + قسم AI السعودي</div></div></div>
+  <div id="p3" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0 + قسم AI السعودي + شات طمّن</div></div></div>
 </div>
 <div class="nav">
   <button id="b1" class="active" onclick="go(1)">🔗<span id="t-nav1">الروابط</span></button>
   <button id="b2" onclick="go(2)">📱<span id="t-nav2">الجوال</span></button>
   <button id="b3" onclick="go(3)">⚙️<span id="t-nav3">الإعدادات</span></button>
 </div>
+
+<div id="chatBtn" onclick="toggleChat()">💬</div>
+<div id="chatBox">
+  <div id="chatHeader"><span>🤖 مساعد طمّن</span><span onclick="toggleChat()" style="cursor:pointer">✕</span></div>
+  <div id="chatMessages">
+    <div class="chat-msg chat-ai">هلا والله! 👋 أنا مساعد طمّن، اسألني عن أي رابط أو كيف تحمي نفسك من النصب.</div>
+  </div>
+  <div id="chatInputRow">
+    <input id="chatInput" placeholder="اكتب سؤالك..." onkeypress="if(event.key==='Enter') sendChat()">
+    <button id="chatSend" onclick="sendChat()">➤</button>
+  </div>
+</div>
+
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
@@ -151,8 +176,6 @@ async function doScanLink(){
   let statusText = data.is_phishing? '⚠️ '+T[L].bad : '✅ '+T[L].safe;
   let vt = data.virustotal || {malicious:0,total:0};
   let vtText = `${T[L].vt}: ${vt.malicious}/${vt.total} ${vt.malicious==0?T[L].safe:T[L].bad}`;
-
-  // --- القسم الجديد اللي يقرأ الـ AI ---
   let ai = data.ai_analysis;
   let aiHtml = "";
   if(ai && typeof ai === 'object'){
@@ -166,7 +189,6 @@ async function doScanLink(){
   } else {
     aiHtml = `<div class="ai-box"><div class="ai-row">${ai || ''}</div></div>`;
   }
-
   document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}"><b>${statusText} - ${data.score}%</b><br><small style="display:block;margin-top:6px">🔍 ${vtText}</small><small style="display:block;margin-top:6px;opacity:.7">${(data.reasons||[]).join(' - ')}</small></div>${aiHtml}`;
  }catch{
   document.getElementById('outLink').innerHTML=`<div class="result bad">${T[L].err}</div>`;
@@ -177,6 +199,38 @@ function doScanPhone(){
  let v=document.getElementById('phoneIn').value.trim(); if(!v) return;
  let bad=v.includes('000');
  document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ ${T[L].bad}</div>`:`<div class="result safe">✅ ${T[L].safe}</div>`;
+}
+
+// شات طمّن
+let chatHistory = [];
+let chatOpen = false;
+function toggleChat(){
+  chatOpen =!chatOpen;
+  document.getElementById('chatBox').style.display = chatOpen? 'flex' : 'none';
+}
+async function sendChat(){
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  const box = document.getElementById('chatMessages');
+  box.innerHTML += `<div class="chat-msg chat-user">${msg}</div>`;
+  input.value = "";
+  box.scrollTop = box.scrollHeight;
+  chatHistory.push({role:"user", content:msg});
+  const typingId = "typing-"+Date.now();
+  box.innerHTML += `<div id="${typingId}" class="chat-msg chat-ai">يكتب...</div>`;
+  box.scrollTop = box.scrollHeight;
+  try{
+    const res = await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({message: msg, history: chatHistory})});
+    const data = await res.json();
+    document.getElementById(typingId).remove();
+    box.innerHTML += `<div class="chat-msg chat-ai">${data.reply}</div>`;
+    chatHistory.push({role:"assistant", content:data.reply});
+    box.scrollTop = box.scrollHeight;
+  }catch(e){
+    document.getElementById(typingId).remove();
+    box.innerHTML += `<div class="chat-msg chat-ai" style="background:#ffebee">⚠️ فيه مشكلة بالاتصال</div>`;
+  }
 }
 </script>
 </body>
