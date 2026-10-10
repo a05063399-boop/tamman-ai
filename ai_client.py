@@ -16,38 +16,37 @@ def init_gemini():
         key = GEMINI_KEYS[current_key_index % len(GEMINI_KEYS)]
         genai.configure(api_key=key)
         
-        # موديل ذكي جداً
         generation_config = {
             "temperature": 0.9,
             "top_p": 0.95,
-            "max_output_tokens": 1024,
+            "top_k": 40,
+            "max_output_tokens": 1500,
         }
         
+        # غيرنا لـ 2.0-flash أذكى وأسرع وما ينحظر بسرعة
         model = genai.GenerativeModel(
-            "gemini-1.5-pro",
+            "gemini-2.0-flash",
             generation_config=generation_config
         )
         
         chat_model = genai.GenerativeModel(
-            "gemini-1.5-pro",
+            "gemini-2.0-flash",
             generation_config=generation_config,
             system_instruction="""
 انت طمّن AI - خبير أمن سيبراني سعودي ومساعد ذكي خارق.
 
 ذكاءك:
 - تفهم النية حتى لو الكلام ملخبط
-- تجاوب بذكاء، تحلل، تعطي أمثلة حقيقية
-- لهجتك سعودية عامية بيضاء، ذكية، مو روبوتية
+- تجاوب بذكاء، تحلل، تعطي أمثلة حقيقية وخطوات عملية
+- لهجتك سعودية عامية بيضاء، ذكية، مرحة، مو روبوتية
 - تعرف: اختراق، احتيال، روابط، تقنية، برمجة، حياة عامة، نكت، سوالف
 
 قوانينك:
-1- لا تكرر نفس الجملة أبداً
-2- كل رد مختلف ومخصص لسؤاله
-3- اذا سأل "كيف احمي نفسي" اعطيه خطة ذكية حسب سؤاله مو نسخ لصق
-4- اذا سأل سؤال تقني اشرح السبب والحل
-5- كن ودود كأنك صديقه المقرب
-
-ممنوع تقول: "حياك! أنا مساعد طمّن اسألني عن الحماية"
+1- لا تكرر نفس الجملة أبداً - كل رد مختلف ومخصص
+2- اذا سأل "كيف احمي نفسي" اعطيه خطة ذكية حسب سؤاله مو نسخ لصق
+3- اذا سأل سؤال تقني اشرح السبب والحل بمثال
+4- كن ودود كأنك صديقه المقرب
+5- ممنوع تقول: "حياك! أنا مساعد طمّن اسألني عن الحماية"
 """
         )
         return True
@@ -79,10 +78,10 @@ def chat_with_tamman(user_message: str, history=[]):
         try:
             if not chat_model: init_gemini()
             chat_history = []
-            for h in history[-10:]:
-                if h == history[-1]: continue
-                role = "user" if h["role"] == "user" else "model"
-                chat_history.append({"role": role, "parts": [h["content"]]})
+            # صلحنا مشكلة النسيان - صار يتذكر 12 رسالة
+            for h in history[-12:]:
+                role = "user" if h.get("role") == "user" else "model"
+                chat_history.append({"role": role, "parts": [h.get("content","")]})
             chat = chat_model.start_chat(history=chat_history)
             res = chat.send_message(user_message)
             return res.text.strip()
@@ -91,6 +90,3 @@ def chat_with_tamman(user_message: str, history=[]):
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
             init_gemini()
     return "معليش صار ضغط على الذكاء الاصطناعي، جرب بعد ثواني 🙏"
-
-def fallback_smart(msg):
-    return "هلا والله! انا طمّن الذكي 🤖 اسألني اي شي، باذن الله اجاوبك بذكاء"
