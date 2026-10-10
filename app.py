@@ -7,8 +7,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import requests
 
-# هذا هو قسم الـ AI الجديد (بدون مجلدات)
 from ai_service import explain_with_ai
+from ai_client import chat_with_tamman # <-- أضفنا الشات
 
 app = FastAPI(title="طَمّن AI Global")
 
@@ -36,7 +36,6 @@ def check_virustotal(url_to_scan: str):
         url_id = base64.urlsafe_b64encode(url_to_scan.encode()).decode().strip("=")
         res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers=headers, timeout=15)
         if res.status_code == 429:
-            print("VT Rate limit")
             return 0, 0
         if res.status_code == 200:
             stats = res.json()['data']['attributes']['last_analysis_stats']
@@ -65,7 +64,7 @@ def get_live():
 
 @app.get("/api")
 def home():
-    return {"status":"Tamman AI + Saudi AI Section ✅"}
+    return {"status":"Tamman AI + Saudi AI Section + Chat ✅"}
 
 @app.post("/check")
 def check_url(data: URLCheck):
@@ -79,14 +78,13 @@ def check_url(data: URLCheck):
     vt_malicious, vt_total = check_virustotal(url_raw)
     vt_str = f"{vt_malicious}/{vt_total}"
 
-    if vt_malicious > 3:
+    # التعديل المهم: كان عندك > 3 صارت >= 3
+    if vt_malicious >= 3:
         score += 50
         reasons.append(f"VirusTotal كشفه ({vt_malicious}/{vt_total})")
         is_phishing_local = True
 
     is_phishing = is_phishing_local or score >= 45
-    
-    # هنا نستخدم قسم الـ AI الجديد اللي باللهجة السعودية
     ai_data = explain_with_ai(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
 
     result = {
@@ -96,10 +94,20 @@ def check_url(data: URLCheck):
         "risk": "عالي 🔴" if is_phishing else "آمن 🟢",
         "reasons": reasons if reasons else ["لا يوجد مؤشرات تصيد"],
         "virustotal": {"malicious": vt_malicious, "total": vt_total},
-        "ai_analysis": ai_data,  # صار JSON مرتب فيه verdict, trick, what_if, advice
+        "ai_analysis": ai_data,
         "time": time.time()
     }
 
     save_cache(url_raw, result)
     add_live(mask_url(url_raw), url_raw, is_phishing)
     return result
+
+# --- هذا هو قسم الشات الجديد ---
+@app.post("/ai-chat")
+def ai_chat_endpoint(data: dict):
+    message = data.get("message", "")
+    history = data.get("history", [])
+    if not message.strip():
+        return {"reply": "اكتب شي طيب 😅"}
+    reply = chat_with_tamman(message, history)
+    return {"reply": reply}
