@@ -68,16 +68,20 @@ def get_numberbok_data(phone: str):
     else:
         sa_country = '966' + clean.lstrip('0')
     if not RAPIDAPI_KEY:
+        print("RAPIDAPI_KEY missing!")
         return None
     keys = [k.strip() for k in RAPIDAPI_KEY.split(',') if k.strip()]
+    print(f"Trying {len(keys)} keys for {sa_country}")
     for key in keys:
         for host, url_template in [
+            ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search?phone={sa_country}"),
             ("truecaller4.p.rapidapi.com", f"https://truecaller4.p.rapidapi.com/v1/lookup?phone={sa_country}&country=SA"),
-            ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search?phone={sa_country}")
         ]:
             try:
                 r = requests.get(url_template, headers={"X-RapidAPI-Key": key, "X-RapidAPI-Host": host}, timeout=10)
+                print(f"{host} {key[:6]}.. status {r.status_code}")
                 if r.status_code == 429:
+                    print(f"Key {key[:6]} exhausted")
                     break
                 if r.status_code!= 200:
                     continue
@@ -88,7 +92,7 @@ def get_numberbok_data(phone: str):
                 basic = data.get("basicInfo", {})
                 name_obj = basic.get("name", {})
                 full_name = name_obj.get("fullName") or name_obj.get("altName") or data.get("name")
-                if not full_name or len(full_name.strip()) < 2 or full_name.lower() == "test3":
+                if not full_name or len(full_name.strip()) < 2 or full_name.lower() in ["test3", "test"]:
                     continue
                 all_names = [full_name.strip()]
                 for sug in data.get("communitySuggestions", [])[:4]:
@@ -118,13 +122,19 @@ def serve_index(): return FileResponse("index.html")
 @app.get("/api/live")
 def get_live(): return get_live_db()
 @app.get("/api")
-def home(): return {"status": f"Tamman + {len(RAPIDAPI_KEY.split(',')) if RAPIDAPI_KEY else 0} keys ✅"}
+def home(): return {"status": f"Tamman + {len(RAPIDAPI_KEY.split(',') if RAPIDAPI_KEY else 0)} keys ✅"}
+@app.get("/clear/{phone}")
+def clear_cache(phone: str):
+    clean = re.sub(r'\D','',phone)
+    save_cache(f"PHONE_{clean}", None)
+    save_cache(phone, None)
+    return {"cleared": phone, "masked": mask_phone(phone)}
 
 @app.post("/check")
 def check_url(data: URLCheck):
     url_raw = data.url.strip()
     cached = get_cache(url_raw)
-    if cached:
+    if cached and cached.get("name")!= "غير مسجل":
         add_live(mask_url(url_raw), url_raw, cached["is_phishing"])
         return cached
     score, reasons, is_phishing_local = analyze_local(url_raw)
@@ -143,11 +153,12 @@ def check_phone_api(data: PhoneCheck):
     phone = data.phone.strip()
     if not phone: return {"phone": "", "name": "غير صحيح", "score": 0}
     masked_for_live = f"📱 {mask_phone(phone)}"
-    cache_key = f"PHONE_{re.sub(r'\\D','',phone)}"
+    cache_key = f"PHONE_{re.sub(r'\D','',phone)}"
     cached = get_cache(cache_key)
-    if cached:
-        add_live(f"{masked_for_live} (ذاكرة)", phone, cached.get("is_spam", False))
-        return cached
+    if cached and cached.get("name") not in ["غير مسجل", "غير صحيح", None, ""]:
+        if "غير معروف" not in cached.get("carrier", "") or cached.get("all_names"):
+            add_live(f"{masked_for_live} (ذاكرة)", phone, cached.get("is_spam", False))
+            return cached
     v_info = check_veriphone_api(phone)
     info = get_numberbok_data(phone)
     if info:
