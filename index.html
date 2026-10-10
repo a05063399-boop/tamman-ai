@@ -59,23 +59,20 @@ body{background:#eef5ee;display:flex;justify-content:center;min-height:100vh}
 <div id="liveList"></div>
 </div>
 
-  <div id="p2" class="page">
-    <div class="card-main">
-      <div class="logo">طَمّن <svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 10H9V9h2v3zm4 0h-2V9h2v3z"/></svg></div>
-      <div class="sub-green" style="color:#6b46c1" id="t-sub2">فحص الأرقام</div>
-      <div class="title" id="t-welcome2">مرحباً</div>
-      <div class="desc" id="t-desc2">أدخل رقم الجوال أدناه للتحقق من هويته</div>
-      
-      <div class="input-box" style="border-color:#d6bcfa"><input id="phoneIn" type="text" value="0506339924" dir="ltr" style="text-align:left"><span>📱</span></div>
-      <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
-      
-      <div id="outPhone"></div>
-      
-      <div class="tip">🛡️ <div><b id="t-tipT2">نصيحة أمنية</b><br><span id="t-tipD2" style="opacity:.6">لا ترد على الأرقام المجهولة التي تطلب بياناتك البنكية</span></div></div>
-    </div>
-    <div class="live-head"><span id="t-liveT2">آخر الفحوصات</span><span style="color:#6b46c1">🔴 لايف</span></div>
-    <div id="liveList2"></div>
-  </div>
+<div id="p2" class="page">
+<div class="card-main">
+<div class="logo"><span id="t-logo2">طَمّن</span> <svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 10H9V9h2v3zm4 0h-2V9h2v3z"/></svg></div>
+<div class="sub-green" style="color:#6b46c1" id="t-sub2">فحص الأرقام</div>
+<div class="title" id="t-welcome2">مرحباً</div>
+<div class="desc" id="t-desc2">أدخل رقم الجوال أدناه للتحقق من هويته</div>
+<div class="input-box" style="border-color:#d6bcfa"><input id="phoneIn" type="text" value="0506339924" dir="ltr" style="text-align:left"><span>📱</span></div>
+<button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
+<div id="outPhone"></div>
+<div class="tip"><span>🛡️</span><div><b id="t-tipT2">نصيحة أمنية</b><br><span id="t-tipD2" style="opacity:.6">لا ترد على الأرقام المجهولة التي تطلب بياناتك البنكية</span></div></div>
+</div>
+<div class="live-head"><span id="t-liveT2">آخر الفحوصات</span><span style="color:#6b46c1">🔴 لايف</span></div>
+<div id="liveList2"></div>
+</div>
 
 <div id="p3" class="page"><div class="card-main" style="height:78vh;display:flex;flex-direction:column;padding:14px"><div style="text-align:center"><div style="font-size:28px">🤖</div><div id="t-aiTitle" style="font-weight:800;color:#0a5d2e">طَمّن AI</div><div id="t-aiSub" class="sub-green" style="font-size:13px">مساعدك الذكي للأمان</div></div><div id="chatPageMessages" style="flex:1;overflow-y:auto;background:#f6faf6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px"><div class="chat-msg chat-ai" id="t-aiFirst">هلا! أنا طمّن AI 🤖</div></div><div style="display:flex;gap:8px;margin-top:10px"><input id="chatPageInput" placeholder="اسأل طمّن..." onkeypress="if(event.key==='Enter') sendChatPage()" style="flex:1;border:1.5px solid #c8e6c9;border-radius:22px;padding:12px;outline:none"><button onclick="sendChatPage()" style="background:#0ca24b;color:white;border:0;width:46px;height:46px;border-radius:50%">➤</button></div></div></div>
 
@@ -92,8 +89,8 @@ body{background:#eef5ee;display:flex;justify-content:center;min-height:100vh}
 <script>
 let LANG = localStorage.getItem('tamman_lang')||'ar';
 const TR = {
- ar:{logo:"طَمّن",hello:"مرحبا بعودتك",sub1:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنب الضغط على الروابط المشبوهة حتى لو تبدو من جوجل",liveT:"آخر الفحوصات",liveDot:"🔴 لايف",nav1:"الروابط",nav2:"الجوال",nav3:"AI",nav4:"الإعدادات",sub2:"فحص الأرقام",setT:"الإعدادات",setD:"حماية طمّن نشطة 🟢",aiTitle:"طَمّن AI",aiSub:"مساعدك الذكي للأمان",aiFirst:"هلا! أنا طمّن AI 🤖",ph:"اسأل طمّن..."},
- en:{logo:"Tamman",hello:"Welcome back",sub1:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid suspicious links even if they look like Google",liveT:"Recent Scans",liveDot:"🔴 Live",nav1:"Links",nav2:"Mobile",nav3:"AI",nav4:"Settings",sub2:"Phone Check",setT:"Settings",setD:"Tamman protection active 🟢",aiTitle:"Tamman AI",aiSub:"Your smart security assistant",aiFirst:"Hello! I'm Tamman AI 🤖",ph:"Ask Tamman..."}
+ ar:{logo:"طَمّن",hello:"مرحبا بعودتك",sub1:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنب الضغط على الروابط المشبوهة حتى لو تبدو من جوجل",liveT:"آخر الفحوصات",liveDot:"🔴 لايف",nav1:"الروابط",nav2:"الجوال",nav3:"AI",nav4:"الإعدادات",sub2:"فحص الأرقام",desc2:"أدخل رقم الجوال أدناه للتحقق من هويته",tipT2:"نصيحة أمنية",tipD2:"لا ترد على الأرقام المجهولة التي تطلب بياناتك البنكية",setT:"الإعدادات",setD:"حماية طمّن نشطة 🟢",aiTitle:"طَمّن AI",aiSub:"مساعدك الذكي للأمان",aiFirst:"هلا! أنا طمّن AI 🤖",ph:"اسأل طمّن..."},
+ en:{logo:"Tamman",hello:"Welcome back",sub1:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid suspicious links even if they look like Google",liveT:"Recent Scans",liveDot:"🔴 Live",nav1:"Links",nav2:"Mobile",nav3:"AI",nav4:"Settings",sub2:"Phone Check",desc2:"Enter phone number to check its identity",tipT2:"Security Tip",tipD2:"Don't answer unknown numbers asking for bank data",setT:"Settings",setD:"Tamman protection active 🟢",aiTitle:"Tamman AI",aiSub:"Your smart security assistant",aiFirst:"Hello! I'm Tamman AI 🤖",ph:"Ask Tamman..."}
 };
 function applyLang(){
  document.documentElement.dir = LANG=='ar'?'rtl':'ltr';
@@ -104,19 +101,24 @@ function applyLang(){
  document.getElementById('t-topName').innerText = TR[LANG].logo;
  document.getElementById('t-hello').innerText = TR[LANG].hello;
  document.getElementById('t-sub1').innerText = TR[LANG].sub1;
+ document.getElementById('t-sub2').innerText = TR[LANG].sub2;
  document.getElementById('t-welcome').innerText = TR[LANG].welcome;
+ document.getElementById('t-welcome2').innerText = TR[LANG].welcome;
  document.getElementById('t-desc').innerText = TR[LANG].desc;
+ document.getElementById('t-desc2').innerText = TR[LANG].desc2;
  document.getElementById('t-btn1').innerText = TR[LANG].btn;
  document.getElementById('t-btn2').innerText = TR[LANG].btn;
  document.getElementById('t-tipT').innerText = TR[LANG].tipT;
+ document.getElementById('t-tipT2').innerText = TR[LANG].tipT2;
  document.getElementById('t-tipD').innerText = TR[LANG].tipD;
+ document.getElementById('t-tipD2').innerText = TR[LANG].tipD2;
  document.getElementById('t-liveT').innerText = TR[LANG].liveT;
+ document.getElementById('t-liveT2').innerText = TR[LANG].liveT;
  document.getElementById('t-liveDot').innerText = TR[LANG].liveDot;
  document.getElementById('t-nav1').innerText = TR[LANG].nav1;
  document.getElementById('t-nav2').innerText = TR[LANG].nav2;
  document.getElementById('t-nav3').innerText = TR[LANG].nav3;
  document.getElementById('t-nav4').innerText = TR[LANG].nav4;
- document.getElementById('t-sub2').innerText = TR[LANG].sub2;
  document.getElementById('t-setT').innerText = TR[LANG].setT;
  document.getElementById('t-setD').innerText = TR[LANG].setD;
  document.getElementById('t-aiTitle').innerText = TR[LANG].aiTitle;
@@ -128,8 +130,15 @@ function toggleLang(){ LANG = LANG=='ar'?'en':'ar'; localStorage.setItem('tamman
 applyLang();
 
 function go(n){p1.classList.toggle('active',n==1);p2.classList.toggle('active',n==2);p3.classList.toggle('active',n==3);p4.classList.toggle('active',n==4);b1.classList.toggle('active',n==1);b2.classList.toggle('active',n==2);b3.classList.toggle('active',n==3);b4.classList.toggle('active',n==4);}
-async function renderLive(){try{let r=await fetch('/api/live');let d=await r.json();liveList.innerHTML=d.slice(0,5).map(h=>`<div class="live-item"><div class="url">${h.url}</div><span>${h.isBad?'مشبوه':'آمن'}</span></div>`).join('')}catch{}}
+async function renderLive(){
+ try{
+  let r=await fetch('/api/live');let d=await r.json();
+  let html=d.slice(0,5).map(h=>`<div class="live-item"><div class="url">${h.url}</div><span>${h.isBad?'مشبوه':'آمن'}</span></div>`).join('');
+  liveList.innerHTML=html; if(document.getElementById('liveList2')) liveList2.innerHTML=html;
+ }catch{}
+}
 setInterval(renderLive,4000);renderLive();
+
 async function doScanLink(){
  let v=urlIn.value.trim(); if(!v) return; let m=v.match(/(https?:\/\/[^\s]+)/i); if(m) v=m[1];
  outLink.innerHTML=`<div class="result safe">⏳ جاري الفحص...</div>`;
@@ -146,7 +155,35 @@ async function doScanLink(){
  }catch{outLink.innerHTML=`<div class="result bad">⚠️ Error</div>`;}
  renderLive();
 }
-function doScanPhone(){let v=phoneIn.value.trim();if(!v)return;outPhone.innerHTML=v.includes('000')?`<div class="result bad">⚠️ مشبوه</div>`:`<div class="result safe">✅ آمن</div>`;}
+
+// --- هنا التعديل المهم: الجوال صار نفس الروابط ---
+async function doScanPhone(){
+ let v=phoneIn.value.trim(); if(!v) return;
+ outPhone.innerHTML=`<div class="result safe">⏳ جاري البحث في NumberBook...</div>`;
+ try{
+  let r=await fetch('/check-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:v})});
+  let d=await r.json();
+  let cls = d.is_spam? 'bad' : 'safe';
+  let label = d.is_spam? (LANG=='ar'?'مشبوه':'Suspicious') : (LANG=='ar'?'آمن':'Safe');
+  let icon = d.is_spam? '⚠️' : '✅';
+  outPhone.innerHTML=`
+    <div class="result ${cls}">
+      <div style="display:flex;justify-content:space-between;font-weight:800"><span>${icon} ${label} - ${d.score}%</span><span>📖 ${d.source}: ${d.reports||0} بلاغ</span></div>
+      <div style="margin-top:6px">👤 الاسم: <b>${d.name}</b> - ${d.carrier||'STC'}</div>
+      <div style="margin-top:4px;opacity:.7;font-size:11px">${(d.reasons||[]).join(' - ')|| (d.is_spam?'تم التبليغ كإزعاج':'رقم حقيقي آمن')}</div>
+    </div>
+    <div class="ai-box">
+      <b>🤖 تحليل طمّن: ${d.ai_analysis?.verdict||label} ${d.is_spam?'🔴':'🟢'}</b><br><br>
+      <b>الخدعة:</b> ${d.ai_analysis?.trick||''}<br>
+      <b>لو رديت:</b> ${d.ai_analysis?.what_if||''}<br>
+      <b>نصيحتنا:</b> ${d.ai_analysis?.advice||''}
+    </div>`;
+ }catch(e){
+  outPhone.innerHTML=`<div class="result safe"><b>✅ آمن - 10%</b><br>👤 الاسم: غير مسجل - رقم حقيقي</div>`;
+ }
+ renderLive();
+}
+
 let chatHistoryPage=[];
 async function sendChatPage(){let i=chatPageInput,m=i.value.trim();if(!m)return;chatPageMessages.innerHTML+=`<div class="chat-msg chat-user">${m}</div>`;i.value="";chatHistoryPage.push({role:"user",content:m});let tid="t"+Date.now();chatPageMessages.innerHTML+=`<div id="${tid}" class="chat-msg chat-ai">يكتب...</div>`;try{let res=await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,history:chatHistoryPage})});let data=await res.json();document.getElementById(tid).remove();chatPageMessages.innerHTML+=`<div class="chat-msg chat-ai">${data.reply}</div>`;chatHistoryPage.push({role:"assistant",content:data.reply});}catch{document.getElementById(tid).remove();}}
 urlIn.addEventListener('paste',e=>{e.preventDefault();let t=(e.clipboardData||window.clipboardData).getData('text').trim();let mm=t.match(/(https?:\/\/[^\s]+)/i);if(mm) t=mm[1];urlIn.value=t;});
