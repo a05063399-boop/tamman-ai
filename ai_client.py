@@ -52,7 +52,7 @@ def ask_gemini(prompt: str) -> str:
         try:
             print(f"Trying key ending:...{key[-6:]}")
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.0-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.9,
@@ -72,7 +72,6 @@ def chat_with_tamman(user_message: str, history=[]):
     if not GEMINI_KEYS:
         return "هلا والله! المفتاح مو مضبوط في Render، تأكد من GEMINI_API_KEY"
 
-    # نبني المحادثة
     full_history = ""
     for h in history[-12:]:
         role = "المستخدم" if h.get("role") == "user" else "المساعد"
