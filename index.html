@@ -68,7 +68,26 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
     <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
+<!-- استبدل div id="p3" كامل بهذا -->
+<div id="p3" class="page">
+  <div class="card-main" style="padding:12px;display:flex;flex-direction:column;height:75vh">
+    <div class="logo" style="font-size:26px;gap:6px;margin-bottom:4px"><span style="color:#0a5d2e">طَمّن AI</span><span>🤖</span></div>
+    <div class="sub-green" style="font-size:14px;margin-bottom:10px">مساعدك الذكي للأمان</div>
+    
+    <div id="quickBtns" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button onclick="quickAsk('كيف احمي نفسي')" style="background:#0ca24b;color:white;border:0;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700">كيف احمي نفسي</button>
+      <button onclick="quickAsk('عطني معلومات')" style="background:#0ca24b;color:white;border:0;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:700">عطني معلومات</button>
+    </div>
 
+    <div id="chatPageMessages" style="flex:1;overflow-y:auto;background:#f6faf6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;border:1px solid #00000006">
+      <div class="chat-msg chat-ai">حياك! أنا مساعد طمّن 🤖 اسألني عن الحماية من النصب أو أي شي ثاني.</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;align-items:center">
+      <input id="chatPageInput" placeholder="اسأل طمّن..." onkeypress="if(event.key==='Enter') sendChatPage()" style="flex:1;border:1.5px solid #c8e6c9;border-radius:24px;padding:12px 16px;outline:none;font-size:14px">
+      <button onclick="sendChatPage()" style="background:#0ca24b;color:white;border:none;border-radius:50%;width:48px;height:48px;font-size:20px;cursor:pointer">➤</button>
+    </div>
+  </div>
+</div>
   <div id="p2" class="page">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-1 0-1 0v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="logoTxt2">طَمّن</span></div>
