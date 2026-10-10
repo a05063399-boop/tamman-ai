@@ -1,12 +1,14 @@
 import base64, os, time
-from ai_rules import analyze_local, get_gemini_prompt
+from ai_rules import analyze_local
 from database import get_cache, save_cache, add_live, get_live as get_live_db
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import requests
-import google.generativeai as genai
+
+# هذا هو قسم الـ AI الجديد (بدون مجلدات)
+from ai_service import explain_with_ai
 
 app = FastAPI(title="طَمّن AI Global")
 
@@ -18,13 +20,6 @@ app.add_middleware(
 )
 
 VT_API_KEY = os.getenv("VT_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    gemini_model = None
 
 def mask_url(u):
     c = u.replace('https://','').replace('http://','').replace('www.','')
@@ -60,17 +55,6 @@ def check_virustotal(url_to_scan: str):
         print(f"VT error: {e}")
         return 0,0
 
-def get_ai_reply(url, score, reasons, vt_str):
-    if not gemini_model:
-        return "آمن 🟢" if score < 45 else f"مشبوه 🔴 - {', '.join(reasons[:2])}"
-    try:
-        prompt = get_gemini_prompt(url, score, reasons, vt_str)
-        r = gemini_model.generate_content(prompt)
-        return r.text.strip()
-    except Exception as e:
-        print(f"Gemini error: {e}")
-        return "آمن 🟢" if score < 45 else f"مشبوه 🔴 {', '.join(reasons[:2])}"
-
 @app.get("/")
 def serve_index():
     return FileResponse("index.html")
@@ -81,7 +65,7 @@ def get_live():
 
 @app.get("/api")
 def home():
-    return {"status":"Tamman AI + SQLite + RateLimit Fix ✅"}
+    return {"status":"Tamman AI + Saudi AI Section ✅"}
 
 @app.post("/check")
 def check_url(data: URLCheck):
@@ -101,7 +85,9 @@ def check_url(data: URLCheck):
         is_phishing_local = True
 
     is_phishing = is_phishing_local or score >= 45
-    ai_text = get_ai_reply(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
+    
+    # هنا نستخدم قسم الـ AI الجديد اللي باللهجة السعودية
+    ai_data = explain_with_ai(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
 
     result = {
         "url": url_raw,
@@ -110,7 +96,7 @@ def check_url(data: URLCheck):
         "risk": "عالي 🔴" if is_phishing else "آمن 🟢",
         "reasons": reasons if reasons else ["لا يوجد مؤشرات تصيد"],
         "virustotal": {"malicious": vt_malicious, "total": vt_total},
-        "ai_analysis": ai_text,
+        "ai_analysis": ai_data,  # صار JSON مرتب فيه verdict, trick, what_if, advice
         "time": time.time()
     }
 
