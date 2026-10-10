@@ -1,92 +1,76 @@
 import os
-import google.generativeai as genai
+from google import genai
 
 RAW_KEYS = os.getenv("GEMINI_API_KEY", "")
 GEMINI_KEYS = [k.strip() for k in RAW_KEYS.split(",") if k.strip()]
 current_key_index = 0
 
-model = None
-chat_model = None
-
-def init_gemini():
-    global model, chat_model, current_key_index
-    if not GEMINI_KEYS:
-        return False
-    try:
-        key = GEMINI_KEYS[current_key_index % len(GEMINI_KEYS)]
-        genai.configure(api_key=key)
-        
-        generation_config = {
-            "temperature": 0.9,
-            "top_p": 0.95,
-            "top_k": 40,
-            "max_output_tokens": 1500,
-        }
-        
-        # غيرنا لـ 2.0-flash أذكى وأسرع وما ينحظر بسرعة
-        model = genai.GenerativeModel(
-            "gemini-2.0-flash",
-            generation_config=generation_config
-        )
-        
-        chat_model = genai.GenerativeModel(
-            "gemini-2.0-flash",
-            generation_config=generation_config,
-            system_instruction="""
+SYSTEM_PROMPT = """
 انت طمّن AI - خبير أمن سيبراني سعودي ومساعد ذكي خارق.
-
 ذكاءك:
 - تفهم النية حتى لو الكلام ملخبط
 - تجاوب بذكاء، تحلل، تعطي أمثلة حقيقية وخطوات عملية
 - لهجتك سعودية عامية بيضاء، ذكية، مرحة، مو روبوتية
 - تعرف: اختراق، احتيال، روابط، تقنية، برمجة، حياة عامة، نكت، سوالف
-
 قوانينك:
-1- لا تكرر نفس الجملة أبداً - كل رد مختلف ومخصص
-2- اذا سأل "كيف احمي نفسي" اعطيه خطة ذكية حسب سؤاله مو نسخ لصق
+1- لا تكرر نفس الجملة أبداً
+2- اذا سأل "كيف احمي نفسي" اعطيه خطة ذكية حسب سؤاله
 3- اذا سأل سؤال تقني اشرح السبب والحل بمثال
 4- كن ودود كأنك صديقه المقرب
-5- ممنوع تقول: "حياك! أنا مساعد طمّن اسألني عن الحماية"
 """
-        )
-        return True
-    except Exception as e:
-        print(f"Init error: {e}")
-        return False
 
-init_gemini()
+def get_client():
+    global current_key_index
+    if not GEMINI_KEYS:
+        return None, None
+    for i in range(len(GEMINI_KEYS)):
+        idx = (current_key_index + i) % len(GEMINI_KEYS)
+        key = GEMINI_KEYS[idx]
+        try:
+            client = genai.Client(api_key=key)
+            current_key_index = idx
+            return client, key
+        except Exception as e:
+            print(f"Key init failed: {e}")
+            continue
+    return None, None
 
 def ask_gemini(prompt: str) -> str:
     global current_key_index
-    if not GEMINI_KEYS: return ""
+    if not GEMINI_KEYS:
+        return ""
+    last_error = None
     for _ in range(len(GEMINI_KEYS)):
+        client, key = get_client()
+        if not client:
+            break
         try:
-            if not model: init_gemini()
-            res = model.generate_content(prompt)
+            print(f"Trying key...{key[-6:]}")
+            res = client.models.generate_content(
+                model="gemini-2.0-flash",
+                contents=prompt
+            )
             return res.text.strip()
         except Exception as e:
-            print(f"Error: {e}")
+            last_error = e
+            print(f"Error with key...{key[-6:]}: {e}")
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
-            init_gemini()
+            continue
+    print(f"All keys failed: {last_error}")
     return ""
 
 def chat_with_tamman(user_message: str, history=[]):
-    global current_key_index
     if not GEMINI_KEYS:
         return "هلا والله! المفتاح مو مضبوط في Render، تأكد من GEMINI_API_KEY"
-    for _ in range(len(GEMINI_KEYS)):
-        try:
-            if not chat_model: init_gemini()
-            chat_history = []
-            # صلحنا مشكلة النسيان - صار يتذكر 12 رسالة
-            for h in history[-12:]:
-                role = "user" if h.get("role") == "user" else "model"
-                chat_history.append({"role": role, "parts": [h.get("content","")]})
-            chat = chat_model.start_chat(history=chat_history)
-            res = chat.send_message(user_message)
-            return res.text.strip()
-        except Exception as e:
-            print(f"Chat error: {e}")
-            current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
-            init_gemini()
-    return "معليش صار ضغط على الذكاء الاصطناعي، جرب بعد ثواني 🙏"
+
+    # نبني المحادثة كاملة
+    contents = SYSTEM_PROMPT + "\n\n"
+    for h in history[-12:]:
+        role = "المستخدم" if h.get("role") == "user" else "المساعد"
+        contents += f"{role}: {h.get('content','')}\n"
+    contents += f"المستخدم: {user_message}\nالمساعد:"
+
+    result = ask_gemini(contents)
+    if not result:
+        return "معليش صار ضغط على الذكاء الاصطناعي، جرب بعد ثواني 🙏"
+    return result
