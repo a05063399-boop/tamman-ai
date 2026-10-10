@@ -1,15 +1,4 @@
-# database.py - قاعدة بيانات مجانية وسريعة لطمن
 import sqlite3
-import time
-import os
-
-DB_PATH = "tamman.db"
-
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    # جدول الكاش (يحفظ النتائج 7 ايام)
-    c.execute('''CREATE TABimport sqlite3
 import time
 import json
 
