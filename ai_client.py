@@ -1,7 +1,6 @@
 import os
 import google.generativeai as genai
 
-# يقرا المفتاح من Render فقط
 RAW_KEYS = os.getenv("GEMINI_API_KEY", "")
 GEMINI_KEYS = [k.strip() for k in RAW_KEYS.split(",") if k.strip()]
 current_key_index = 0
@@ -12,44 +11,62 @@ chat_model = None
 def init_gemini():
     global model, chat_model, current_key_index
     if not GEMINI_KEYS:
-        print("No GEMINI_API_KEY found")
         return False
     try:
         key = GEMINI_KEYS[current_key_index % len(GEMINI_KEYS)]
         genai.configure(api_key=key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        
+        # موديل ذكي جداً
+        generation_config = {
+            "temperature": 0.9,
+            "top_p": 0.95,
+            "max_output_tokens": 1024,
+        }
+        
+        model = genai.GenerativeModel(
+            "gemini-1.5-pro",
+            generation_config=generation_config
+        )
+        
         chat_model = genai.GenerativeModel(
-            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            generation_config=generation_config,
             system_instruction="""
-انت طمّن AI - مساعد سعودي ذكي وودود جداً.
-لهجتك سعودية عامية خفيفة، محترمة ومرحة.
-ذكي جداً، تجاوب على كل شي: أمان سيبراني، تقنية، معلومات عامة، سوالف.
-لا تكرر نفس الرد أبداً.
-- اذا قال "كيف احمي نفسي": اشرح 4 خطوات عملية مختصرة مع ايموجي.
-- اذا قال "احبك": "وانا احبك أكثر ❤️ بس لا تعطي قلبك ولا بياناتك لنصاب 😅"
-- اذا سأل عن رابط: قله يحطه في تبويب الروابط فوق.
-- ردودك قصيرة 2-4 أسطر.
+انت طمّن AI - خبير أمن سيبراني سعودي ومساعد ذكي خارق.
+
+ذكاءك:
+- تفهم النية حتى لو الكلام ملخبط
+- تجاوب بذكاء، تحلل، تعطي أمثلة حقيقية
+- لهجتك سعودية عامية بيضاء، ذكية، مو روبوتية
+- تعرف: اختراق، احتيال، روابط، تقنية، برمجة، حياة عامة، نكت، سوالف
+
+قوانينك:
+1- لا تكرر نفس الجملة أبداً
+2- كل رد مختلف ومخصص لسؤاله
+3- اذا سأل "كيف احمي نفسي" اعطيه خطة ذكية حسب سؤاله مو نسخ لصق
+4- اذا سأل سؤال تقني اشرح السبب والحل
+5- كن ودود كأنك صديقه المقرب
+
+ممنوع تقول: "حياك! أنا مساعد طمّن اسألني عن الحماية"
 """
         )
         return True
     except Exception as e:
-        print(f"Gemini init error: {e}")
+        print(f"Init error: {e}")
         return False
 
 init_gemini()
 
 def ask_gemini(prompt: str) -> str:
     global current_key_index
-    if not GEMINI_KEYS:
-        return ""
+    if not GEMINI_KEYS: return ""
     for _ in range(len(GEMINI_KEYS)):
         try:
-            if not model:
-                init_gemini()
+            if not model: init_gemini()
             res = model.generate_content(prompt)
             return res.text.strip()
         except Exception as e:
-            print(f"Gemini error key {current_key_index}: {e}")
+            print(f"Error: {e}")
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
             init_gemini()
     return ""
@@ -57,30 +74,23 @@ def ask_gemini(prompt: str) -> str:
 def chat_with_tamman(user_message: str, history=[]):
     global current_key_index
     if not GEMINI_KEYS:
-        return fallback_smart(user_message)
+        return "هلا والله! المفتاح مو مضبوط في Render، تأكد من GEMINI_API_KEY"
     for _ in range(len(GEMINI_KEYS)):
         try:
-            if not chat_model:
-                init_gemini()
+            if not chat_model: init_gemini()
             chat_history = []
-            for h in history[:-1][-8:]:
+            for h in history[-10:]:
+                if h == history[-1]: continue
                 role = "user" if h["role"] == "user" else "model"
                 chat_history.append({"role": role, "parts": [h["content"]]})
             chat = chat_model.start_chat(history=chat_history)
             res = chat.send_message(user_message)
             return res.text.strip()
         except Exception as e:
-            print(f"Gemini chat error key {current_key_index}: {e}")
+            print(f"Chat error: {e}")
             current_key_index = (current_key_index + 1) % len(GEMINI_KEYS)
             init_gemini()
-    return fallback_smart(user_message)
+    return "معليش صار ضغط على الذكاء الاصطناعي، جرب بعد ثواني 🙏"
 
 def fallback_smart(msg):
-    ml = msg.lower()
-    if "احمي" in ml:
-        return "حمايتك بسيطة 🛡️\n1- لا تفتح أي رابط غريب\n2- فعل التحقق بخطوتين\n3- لا تشارك كود OTP أبداً\n4- افحص أي شي شاك فيه في طمّن فوق"
-    if "احبك" in ml or "حبك" in ml:
-        return "حبيبي وأنا أحبك أكثر ❤️ بس انتبه لا تعطي معلوماتك لأحد 😉"
-    if "هلا" in ml or "سلام" in ml:
-        return "هلااا والله وغلا فيك 👋 نورت طمّن! تبيني أفحص لك رابط ولا أعطيك نصيحة؟"
-    return "حياك يا بطل! أنا طمّن AI 🤖 أقدر أساعدك في الحماية وأي سؤال. وش عندك؟"
+    return "هلا والله! انا طمّن الذكي 🤖 اسألني اي شي، باذن الله اجاوبك بذكاء"
