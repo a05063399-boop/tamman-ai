@@ -59,7 +59,23 @@ body{background:#eef5ee;display:flex;justify-content:center;min-height:100vh}
 <div id="liveList"></div>
 </div>
 
-<div id="p2" class="page"><div class="card-main"><div class="logo"><span id="t-logo2">طَمّن</span> 📱</div><div class="sub-green" id="t-sub2" style="color:#6b46c1">فحص الأرقام</div><div class="input-box"><input id="phoneIn" dir="ltr" placeholder="+966 5X XXX XXXX"><span>📱</span></div><button class="btn-main" id="t-btn2" style="background:#6b46c1" onclick="doScanPhone()">افحص الآن</button><div id="outPhone"></div></div></div>
+  <div id="p2" class="page">
+    <div class="card-main">
+      <div class="logo">طَمّن <svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 10H9V9h2v3zm4 0h-2V9h2v3z"/></svg></div>
+      <div class="sub-green" style="color:#6b46c1" id="t-sub2">فحص الأرقام</div>
+      <div class="title" id="t-welcome2">مرحباً</div>
+      <div class="desc" id="t-desc2">أدخل رقم الجوال أدناه للتحقق من هويته</div>
+      
+      <div class="input-box" style="border-color:#d6bcfa"><input id="phoneIn" type="text" value="0506339924" dir="ltr" style="text-align:left"><span>📱</span></div>
+      <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
+      
+      <div id="outPhone"></div>
+      
+      <div class="tip">🛡️ <div><b id="t-tipT2">نصيحة أمنية</b><br><span id="t-tipD2" style="opacity:.6">لا ترد على الأرقام المجهولة التي تطلب بياناتك البنكية</span></div></div>
+    </div>
+    <div class="live-head"><span id="t-liveT2">آخر الفحوصات</span><span style="color:#6b46c1">🔴 لايف</span></div>
+    <div id="liveList2"></div>
+  </div>
 
 <div id="p3" class="page"><div class="card-main" style="height:78vh;display:flex;flex-direction:column;padding:14px"><div style="text-align:center"><div style="font-size:28px">🤖</div><div id="t-aiTitle" style="font-weight:800;color:#0a5d2e">طَمّن AI</div><div id="t-aiSub" class="sub-green" style="font-size:13px">مساعدك الذكي للأمان</div></div><div id="chatPageMessages" style="flex:1;overflow-y:auto;background:#f6faf6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px"><div class="chat-msg chat-ai" id="t-aiFirst">هلا! أنا طمّن AI 🤖</div></div><div style="display:flex;gap:8px;margin-top:10px"><input id="chatPageInput" placeholder="اسأل طمّن..." onkeypress="if(event.key==='Enter') sendChatPage()" style="flex:1;border:1.5px solid #c8e6c9;border-radius:22px;padding:12px;outline:none"><button onclick="sendChatPage()" style="background:#0ca24b;color:white;border:0;width:46px;height:46px;border-radius:50%">➤</button></div></div></div>
 
