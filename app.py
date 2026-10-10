@@ -22,8 +22,8 @@ app.add_middleware(
 VT_API_KEY = os.getenv("VT_API_KEY")
 NUMBERBOOK_API_KEY = os.getenv("NUMBERBOOK_API_KEY")
 NUMBERBOOK_API_URL = os.getenv("NUMBERBOOK_API_URL", "")
-VERIPHONE_KEY = os.getenv("VERIPHONE_KEY") # <-- حطيت لك الجديد هنا
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY") # لو جبت Truecaller4 بعدين
+VERIPHONE_KEY = os.getenv("VERIPHONE_KEY")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
 def mask_url(u):
     c = u.replace('https://','').replace('http://','').replace('www.','')
@@ -35,7 +35,7 @@ class URLCheck(BaseModel):
 class PhoneCheck(BaseModel):
     phone: str
 
-# --- VirusTotal ---
+# --- VirusTotal (نفس كودك الأصلي ما لمسته) ---
 def check_virustotal(url_to_scan: str):
     if not VT_API_KEY:
         return 0, 0
@@ -59,7 +59,7 @@ def check_virustotal(url_to_scan: str):
     except:
         return 0,0
 
-# --- Veriphone (1000 مجاني) + Cache ---
+# --- Veriphone (نفس كودك الأصلي) ---
 @lru_cache(maxsize=10000)
 def check_veriphone_api(phone: str):
     if not VERIPHONE_KEY:
@@ -69,7 +69,6 @@ def check_veriphone_api(phone: str):
         clean = '+966' + clean[1:]
     elif not clean.startswith('+'):
         clean = '+966' + clean.lstrip('9660')
-    
     try:
         url = "https://api.veriphone.io/v2/verify"
         r = requests.get(url, params={"key": VERIPHONE_KEY, "phone": clean}, timeout=8)
@@ -85,7 +84,7 @@ def check_veriphone_api(phone: str):
         print(f"Veriphone Error: {e}")
     return None
 
-# --- ربط NumberBook الحقيقي + Truecaller4 ---
+# --- NumberBook القوي - هنا فقط التحسين ---
 def get_numberbok_data(phone: str):
     clean = re.sub(r'\D', '', phone)
     sa_original = clean
@@ -94,7 +93,7 @@ def get_numberbok_data(phone: str):
     if not clean.startswith('0') and len(clean) == 9:
         clean = '0' + clean
 
-    # 1- Truecaller4 من RapidAPI (1000 مجاني) - للأسماء
+    # 1- Truecaller4
     if RAPIDAPI_KEY:
         try:
             for host, endpoint in [
@@ -102,11 +101,7 @@ def get_numberbok_data(phone: str):
                 ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search/{sa_original}")
             ]:
                 try:
-                    r = requests.get(
-                        endpoint,
-                        headers={"X-RapidAPI-Key": RAPIDAPI_KEY, "X-RapidAPI-Host": host},
-                        timeout=6
-                    )
+                    r = requests.get(endpoint, headers={"X-RapidAPI-Key": RAPIDAPI_KEY, "X-RapidAPI-Host": host}, timeout=6)
                     if r.status_code == 200:
                         d = r.json()
                         name = d.get("name") or d.get("Name") or d.get("data", {}).get("name")
@@ -117,15 +112,10 @@ def get_numberbok_data(phone: str):
         except:
             pass
 
-    # 2- لو عندك API مدفوع من شركة
+    # 2- API مدفوع
     if NUMBERBOOK_API_KEY and NUMBERBOOK_API_URL:
         try:
-            r = requests.get(
-                NUMBERBOOK_API_URL,
-                params={"phone": clean, "country": "SA"},
-                headers={"Authorization": f"Bearer {NUMBERBOOK_API_KEY}", "apikey": NUMBERBOOK_API_KEY},
-                timeout=6
-            )
+            r = requests.get(NUMBERBOOK_API_URL, params={"phone": clean, "country": "SA"}, headers={"Authorization": f"Bearer {NUMBERBOOK_API_KEY}", "apikey": NUMBERBOOK_API_KEY}, timeout=6)
             if r.status_code == 200:
                 d = r.json()
                 name = d.get("name") or d.get("caller_name") or d.get("data", {}).get("name")
@@ -134,18 +124,28 @@ def get_numberbok_data(phone: str):
         except Exception as e:
             print(f"NumberBook API Error: {e}")
 
-    # 3- كشط مجاني بلا حدود
+    # 3- كشط مجاني - تم تقويته من موقعين الى 5 مواقع
     try:
-        headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)"}
-        for url in [f"https://number-book.com/number/{clean}", f"https://www.numberozo.com/number/{clean}"]:
+        headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", "Accept-Language": "ar-SA,ar;q=0.9"}
+        # ضفت 3 مواقع جديدة قوية
+        urls_to_try = [
+            f"https://number-book.com/number/{clean}",
+            f"https://www.numberozo.com/number/{clean}",
+            f"https://sa.number-book.com/{clean}",
+            f"https://www.daleelaljoalat.com/sa/{clean}",
+            f"https://numberozo.com/saudi-arabia/{clean}"
+        ]
+        for url in urls_to_try:
             try:
                 res = requests.get(url, headers=headers, timeout=6)
                 if res.status_code == 200 and len(res.text) > 1000:
-                    m = re.search(r'<h1[^>]*>([^<]{3,40})</h1>', res.text)
-                    if m:
-                        name = m.group(1).strip()
-                        if name and "number" not in name.lower() and len(name) > 2:
-                            return {"name": name, "carrier": "STC", "reports": 0, "is_spam": False, "source": "NumberBook Free"}
+                    # جرب اكثر من نمط
+                    for pat in [r'<h1[^>]*>([^<]{3,40})</h1>', r'<title>([^<]{3,50}) - Number Book', r'"name"\s*:\s*"([^"]{3,50})"']:
+                        m = re.search(pat, res.text, re.I)
+                        if m:
+                            name = m.group(1).strip()
+                            if name and "number" not in name.lower() and len(name) > 2 and not name.replace(" ","").isdigit():
+                                return {"name": name, "carrier": "STC", "reports": 0, "is_spam": False, "source": "NumberBook Free"}
             except:
                 continue
     except:
@@ -196,20 +196,13 @@ def check_phone_api(data: PhoneCheck):
     phone = data.phone.strip()
     if not phone:
         return {"phone": "", "name": "غير صحيح", "score": 0}
-
-    # --- نظام ذاكرة بلا حدود (مثل VirusTotal) ---
     cache_key = f"PHONE_{re.sub(r'\\D','',phone)}"
     cached = get_cache(cache_key)
     if cached:
         add_live(f"📱 {phone} (cache)", phone, cached.get("is_spam", False))
         return cached
-
-    # 1- Veriphone (1000 مجاني) للتحقق
     v_info = check_veriphone_api(phone)
-    
-    # 2- NumberBook / Truecaller للأسم
     info = get_numberbok_data(phone)
-
     if info:
         name = info["name"]
         carrier = v_info["carrier"] if v_info and v_info.get("carrier") != "غير معروف" else info["carrier"]
@@ -222,14 +215,10 @@ def check_phone_api(data: PhoneCheck):
         reports = 0
         is_spam = False
         source = "Veriphone" if v_info else "غير معروف"
-
-    # دمج معلومات Veriphone للصحة
     if v_info and not v_info.get("valid"):
         is_spam = True
         name = "رقم غير صالح"
-
     score = 85 if is_spam else 10
-    
     if is_spam:
         ai_analysis = {
             "verdict": "خطير",
@@ -256,7 +245,6 @@ def check_phone_api(data: PhoneCheck):
                 "advice": "الرقم آمن"
             }
             reasons = [f"الاسم: {name}", f"الشبكة: {carrier}", f"المصدر: {source}"]
-
     result = {
         "phone": phone, "name": name, "carrier": carrier,
         "source": source, "reports": reports, "is_spam": is_spam,
@@ -264,8 +252,6 @@ def check_phone_api(data: PhoneCheck):
         "ai_analysis": ai_analysis,
         "veriphone": v_info
     }
-    
-    # حفظ في الذاكرة شهر (بلا حدود)
     save_cache(cache_key, result)
     add_live(f"📱 {phone}", phone, is_spam)
     return result
