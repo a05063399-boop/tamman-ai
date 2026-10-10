@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
 body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
-.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:12px 16px 100px;position:relative}
+.phone{width:400px;background:#f0f6ef;min-height:100vh;padding:12px 16px 110px;position:relative}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .lang-btn{background:#0ca24b;color:white;border:0;padding:6px 14px;border-radius:10px;font-weight:800;font-size:12px;cursor:pointer}
 .card-main{background:white;border-radius:28px;padding:22px 18px;box-shadow:0 10px 30px #00000010;border:1px solid #00000006}
@@ -26,8 +26,8 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .badge{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
 .badge-ok{background:#e8f5e9;color:#1b8a4a}
 .badge-bad{background:#fff3e0;color:#e67e00}
-.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:380px;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 10px 30px #00000015;z-index:9998}
-.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 18px;border-radius:14px}
+.nav{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);width:390px;max-width:95vw;background:white;border-radius:22px;display:flex;justify-content:space-around;padding:8px 0;box-shadow:0 10px 30px #00000015;z-index:9998}
+.nav button{border:0;background:transparent;color:#9e9e9e;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:8px 10px;border-radius:14px;flex:1}
 .nav button.active{background:#0ca24b15;color:#0ca24b}
 .page{display:none}.page.active{display:block;animation:fade.25s}@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .result{margin-top:12px;padding:14px;border-radius:14px;font-size:13px;line-height:1.7}
@@ -37,18 +37,14 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
 .ai-box h4{font-size:15px;margin-bottom:8px;color:#0a5d2e}
 .ai-row{font-size:12px;margin-bottom:6px;line-height:1.6}
 .ai-row b{color:#0a5d2e}
-/* شات طمّن */
-#chatBtn{position:fixed;bottom:85px;left:18px;background:#0ca24b;color:white;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;cursor:pointer;box-shadow:0 8px 20px #0ca24b50;z-index:9999;animation:pulse 2s infinite}
-@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
-#chatBox{display:none;position:fixed;bottom:150px;left:16px;width:350px;max-width:92vw;height:440px;background:white;border-radius:22px;box-shadow:0 15px 40px #00000020;z-index:10000;flex-direction:column;overflow:hidden;border:1px solid #00000008}
-#chatHeader{background:#0ca24b;color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
-#chatMessages{flex:1;overflow-y:auto;padding:12px;background:#f6faf6;display:flex;flex-direction:column;gap:8px}
-.chat-msg{padding:9px 12px;border-radius:14px;font-size:13px;max-width:80%;line-height:1.6}
+/* شات AI الصفحة */
+#chatPageMessages{height:360px;overflow-y:auto;background:#f6faf6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;margin-top:12px;border:1px solid #00000006}
+.chat-msg{padding:9px 12px;border-radius:14px;font-size:13px;max-width:85%;line-height:1.6}
 .chat-user{background:#0ca24b;color:white;align-self:flex-end;border-bottom-right-radius:4px}
 .chat-ai{background:white;align-self:flex-start;border:1px solid #00000008;box-shadow:0 1px 3px #00000008;border-bottom-left-radius:4px}
-#chatInputRow{display:flex;padding:8px;border-top:1px solid #eee;gap:6px;background:white}
-#chatInput{flex:1;border:1.5px solid #c8e6c9;border-radius:20px;padding:9px 12px;outline:none;font-size:13px}
-#chatSend{background:#0ca24b;color:white;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-weight:800}
+#chatPageInputRow{display:flex;gap:6px;margin-top:10px}
+#chatPageInput{flex:1;border:1.5px solid #c8e6c9;border-radius:20px;padding:12px 14px;outline:none;font-size:13px}
+#chatPageSend{background:#0ca24b;color:white;border:none;border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:18px}
 </style>
 </head>
 <body>
@@ -57,13 +53,14 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
     <div style="display:flex;align-items:center;gap:8px"><div style="width:36px;height:36px;border-radius:50%;background:url(https://i.pravatar.cc/100) center/cover"></div><div><small id="t-hello" style="opacity:.6;font-size:10px">مرحبا بعودتك</small><br><b id="t-topName">طَمّن</b></div></div>
     <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
   </div>
+
   <div id="p1" class="page active">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#0ca24b"><path d="M12 2L4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3zm-1 14l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L18 9l-7 7z"/></svg><span id="logoTxt1">طَمّن</span></div>
       <div class="sub-green" id="t-scan">فحص الروابط المشبوهة</div>
       <div class="title" id="t-welcome">مرحباً</div>
       <div class="desc" id="t-desc">أدخل الرابط أدناه لفحصه والتأكد من سلامته</div>
-      <div class="input-box"><span>🔗</span><input id="urlIn" type="text" inputmode="url" placeholder="الصق الرابط هنا..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" onfocus="this.select()"></div>
+      <div class="input-box"><span>🔗</span><input id="urlIn" type="text" inputmode="url" placeholder="الصق الرابط هنا..."></div>
       <button class="btn-main" id="t-btn1" onclick="doScanLink()">افحص الآن</button>
       <div id="outLink"></div>
       <div class="tip"><div>🛡️</div><div><b id="t-tipT">نصيحة أمنية</b><br><small id="t-tipD" style="opacity:.7;font-size:11px">تجنّب الروابط المختصرة المجهولة</small></div></div>
@@ -71,40 +68,46 @@ body{background:#f0f6ef;display:flex;justify-content:center;min-height:100vh}
     <div class="live-head"><span id="t-live1">آخر الفحوصات</span><span id="liveTxt" style="color:#0ca24b;font-size:13px;font-weight:800">🔴 لايف</span></div>
     <div id="liveList"></div>
   </div>
+
   <div id="p2" class="page">
     <div class="card-main">
       <div class="logo"><svg viewBox="0 0 24 24" fill="#6b46c1"><path d="M17 2H7c-1.1 0-1 0-1 0v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/></svg><span id="logoTxt2">طَمّن</span></div>
       <div class="sub-green" style="color:#6b46c1" id="t-phoneT">فحص الأرقام</div>
-      <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX" autocomplete="off" autocorrect="off" spellcheck="false" onfocus="this.select()"></div>
+      <div class="input-box" style="border-color:#d6bcfa"><span>📱</span><input id="phoneIn" placeholder="+966 5X XXX XXXX"></div>
       <button class="btn-main" style="background:#6b46c1" id="t-btn2" onclick="doScanPhone()">افحص الآن</button>
       <div id="outPhone"></div>
     </div>
   </div>
-  <div id="p3" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0 + قسم AI السعودي + شات طمّن</div></div></div>
+
+  <div id="p3" class="page">
+    <div class="card-main">
+      <div class="logo"><span style="font-size:32px">🤖</span><span style="font-size:28px;color:#0ca24b">AI طمّن</span></div>
+      <div class="sub-green">مساعدك الذكي للأمان</div>
+      <div id="chatPageMessages">
+        <div class="chat-msg chat-ai">هلا والله! 👋 أنا مساعد طمّن الذكي، اسألني عن أي شي يخص النصب والروابط والحماية.</div>
+      </div>
+      <div id="chatPageInputRow">
+        <input id="chatPageInput" placeholder="اسأل طمّن..." onkeypress="if(event.key==='Enter') sendChatPage()">
+        <button id="chatPageSend" onclick="sendChatPage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="p4" class="page"><div class="card-main"><b id="t-set">الإعدادات</b><br><br><div style="font-size:13px;opacity:.7">حماية طمّن نشطة 🟢<br>الإصدار العالمي 1.0 + AI السعودي</div></div></div>
 </div>
+
 <div class="nav">
   <button id="b1" class="active" onclick="go(1)">🔗<span id="t-nav1">الروابط</span></button>
   <button id="b2" onclick="go(2)">📱<span id="t-nav2">الجوال</span></button>
-  <button id="b3" onclick="go(3)">⚙️<span id="t-nav3">الإعدادات</span></button>
-</div>
-
-<div id="chatBtn" onclick="toggleChat()">💬</div>
-<div id="chatBox">
-  <div id="chatHeader"><span>🤖 مساعد طمّن</span><span onclick="toggleChat()" style="cursor:pointer">✕</span></div>
-  <div id="chatMessages">
-    <div class="chat-msg chat-ai">هلا والله! 👋 أنا مساعد طمّن، اسألني عن أي رابط أو كيف تحمي نفسك من النصب.</div>
-  </div>
-  <div id="chatInputRow">
-    <input id="chatInput" placeholder="اكتب سؤالك..." onkeypress="if(event.key==='Enter') sendChat()">
-    <button id="chatSend" onclick="sendChat()">➤</button>
-  </div>
+  <button id="b3" onclick="go(3)">🤖<span id="t-nav3">AI</span></button>
+  <button id="b4" onclick="go(4)">⚙️<span id="t-nav4">الإعدادات</span></button>
 </div>
 
 <script>
 let L = localStorage.getItem('lang')||'ar';
 const T = {
- ar: {logo:"طَمّن",hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",vt:"حسب VirusTotal",trick:"الخدعة:",what:"لو دخلت:",advice:"نصيحتنا:"},
- en: {logo:"TAMMAN",hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",vt:"According to VirusTotal",trick:"Trick:",what:"If you click:",advice:"Advice:"}
+ ar: {logo:"طَمّن",hello:"مرحبا بعودتك",scan:"فحص الروابط المشبوهة",welcome:"مرحباً",desc:"أدخل الرابط أدناه لفحصه والتأكد من سلامته",phLink:"الصق الرابط هنا...",btn:"افحص الآن",tipT:"نصيحة أمنية",tipD:"تجنّب الروابط المختصرة المجهولة",live1:"آخر الفحوصات",nav1:"الروابط",nav2:"الجوال",nav3:"AI",nav4:"الإعدادات",phoneT:"فحص الأرقام",phPhone:"+966 5X XXX XXXX",set:"الإعدادات",live:"لايف",safe:"آمن",bad:"مشبوه",no:"لا يوجد فحوصات",scanning:"⏳ جاري الفحص...",err:"⚠️ خطأ في الاتصال",vt:"حسب VirusTotal",trick:"الخدعة:",what:"لو دخلت:",advice:"نصيحتنا:"},
+ en: {logo:"TAMMAN",hello:"Welcome back",scan:"Suspicious Link Scanner",welcome:"Hello",desc:"Enter the link below to check its safety",phLink:"Paste link here...",btn:"Scan Now",tipT:"Security Tip",tipD:"Avoid unknown short links",live1:"Recent Scans",nav1:"Links",nav2:"Mobile",nav3:"AI",nav4:"Settings",phoneT:"Phone Check",phPhone:"+966 5X XXX XXXX",set:"Settings",live:"Live",safe:"Safe",bad:"Suspicious",no:"No scans",scanning:"⏳ Scanning...",err:"⚠️ Connection error",vt:"According to VirusTotal",trick:"Trick:",what:"If you click:",advice:"Advice:"}
 };
 function applyLang(){
  document.documentElement.dir = L=='ar'?'rtl':'ltr';
@@ -126,6 +129,7 @@ function applyLang(){
  document.getElementById('t-nav1').innerText = T[L].nav1;
  document.getElementById('t-nav2').innerText = T[L].nav2;
  document.getElementById('t-nav3').innerText = T[L].nav3;
+ document.getElementById('t-nav4').innerText = T[L].nav4;
  document.getElementById('t-phoneT').innerText = T[L].phoneT;
  document.getElementById('phoneIn').placeholder = T[L].phPhone;
  document.getElementById('t-set').innerText = T[L].set;
@@ -137,9 +141,11 @@ function go(n){
  document.getElementById('p1').classList.toggle('active',n==1);
  document.getElementById('p2').classList.toggle('active',n==2);
  document.getElementById('p3').classList.toggle('active',n==3);
+ document.getElementById('p4').classList.toggle('active',n==4);
  document.getElementById('b1').classList.toggle('active',n==1);
  document.getElementById('b2').classList.toggle('active',n==2);
  document.getElementById('b3').classList.toggle('active',n==3);
+ document.getElementById('b4').classList.toggle('active',n==4);
 }
 async function renderLive(){
  try{
@@ -159,7 +165,6 @@ urlIn.addEventListener('paste', (e) => {
   let text = (e.clipboardData || window.clipboardData).getData('text').trim();
   let m = text.match(/(https?:\/\/[^\s\u0600-\u06FF]+)/i);
   if(m) text = m[1];
-  else text = text.replace(/افحص الآن/g,'').replace(/نصيحة أمنية/g,'').replace(/نصيا/g,'').trim();
   urlIn.value = text;
 });
 
@@ -167,7 +172,6 @@ async function doScanLink(){
  let v=document.getElementById('urlIn').value.trim();
  let mm = v.match(/(https?:\/\/[^\s]+)/i);
  if(mm) v = mm[1];
- v = v.replace(/افحص الآن/g,'').replace(/نصيحة أمنية/g,'').trim();
  if(!v) return;
  document.getElementById('outLink').innerHTML=`<div class="result safe">${T[L].scanning}</div>`;
  try{
@@ -175,21 +179,10 @@ async function doScanLink(){
   let data=await r.json();
   let statusText = data.is_phishing? '⚠️ '+T[L].bad : '✅ '+T[L].safe;
   let vt = data.virustotal || {malicious:0,total:0};
-  let vtText = `${T[L].vt}: ${vt.malicious}/${vt.total} ${vt.malicious==0?T[L].safe:T[L].bad}`;
+  let vtText = `${T[L].vt}: ${vt.malicious}/${vt.total}`;
   let ai = data.ai_analysis;
-  let aiHtml = "";
-  if(ai && typeof ai === 'object'){
-    aiHtml = `
-    <div class="ai-box">
-      <h4>🤖 تحليل طمّن: ${ai.verdict || ''}</h4>
-      <div class="ai-row"><b>${T[L].trick}</b> ${ai.trick || ''}</div>
-      <div class="ai-row"><b>${T[L].what}</b> ${ai.what_if || ''}</div>
-      <div class="ai-row"><b>${T[L].advice}</b> ${ai.advice || ''}</div>
-    </div>`;
-  } else {
-    aiHtml = `<div class="ai-box"><div class="ai-row">${ai || ''}</div></div>`;
-  }
-  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}"><b>${statusText} - ${data.score}%</b><br><small style="display:block;margin-top:6px">🔍 ${vtText}</small><small style="display:block;margin-top:6px;opacity:.7">${(data.reasons||[]).join(' - ')}</small></div>${aiHtml}`;
+  let aiHtml = ai && typeof ai === 'object'? `<div class="ai-box"><h4>🤖 ${ai.verdict||''}</h4><div class="ai-row"><b>${T[L].trick}</b> ${ai.trick||''}</div><div class="ai-row"><b>${T[L].what}</b> ${ai.what_if||''}</div><div class="ai-row"><b>${T[L].advice}</b> ${ai.advice||''}</div></div>` : `<div class="ai-box">${ai||''}</div>`;
+  document.getElementById('outLink').innerHTML=`<div class="result ${data.is_phishing?'bad':'safe'}"><b>${statusText} - ${data.score}%</b><br><small>${vtText}</small><br><small style="opacity:.7">${(data.reasons||[]).join(' - ')}</small></div>${aiHtml}`;
  }catch{
   document.getElementById('outLink').innerHTML=`<div class="result bad">${T[L].err}</div>`;
  }
@@ -200,36 +193,29 @@ function doScanPhone(){
  let bad=v.includes('000');
  document.getElementById('outPhone').innerHTML=bad?`<div class="result bad">⚠️ ${T[L].bad}</div>`:`<div class="result safe">✅ ${T[L].safe}</div>`;
 }
-
-// شات طمّن
-let chatHistory = [];
-let chatOpen = false;
-function toggleChat(){
-  chatOpen =!chatOpen;
-  document.getElementById('chatBox').style.display = chatOpen? 'flex' : 'none';
-}
-async function sendChat(){
-  const input = document.getElementById('chatInput');
+let chatHistoryPage = [];
+async function sendChatPage(){
+  const input = document.getElementById('chatPageInput');
   const msg = input.value.trim();
   if(!msg) return;
-  const box = document.getElementById('chatMessages');
+  const box = document.getElementById('chatPageMessages');
   box.innerHTML += `<div class="chat-msg chat-user">${msg}</div>`;
   input.value = "";
   box.scrollTop = box.scrollHeight;
-  chatHistory.push({role:"user", content:msg});
+  chatHistoryPage.push({role:"user", content:msg});
   const typingId = "typing-"+Date.now();
   box.innerHTML += `<div id="${typingId}" class="chat-msg chat-ai">يكتب...</div>`;
   box.scrollTop = box.scrollHeight;
   try{
-    const res = await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({message: msg, history: chatHistory})});
+    const res = await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body: JSON.stringify({message: msg, history: chatHistoryPage})});
     const data = await res.json();
     document.getElementById(typingId).remove();
     box.innerHTML += `<div class="chat-msg chat-ai">${data.reply}</div>`;
-    chatHistory.push({role:"assistant", content:data.reply});
+    chatHistoryPage.push({role:"assistant", content:data.reply});
     box.scrollTop = box.scrollHeight;
   }catch(e){
     document.getElementById(typingId).remove();
-    box.innerHTML += `<div class="chat-msg chat-ai" style="background:#ffebee">⚠️ فيه مشكلة بالاتصال</div>`;
+    box.innerHTML += `<div class="chat-msg chat-ai" style="background:#ffebee">⚠️ مشكلة بالاتصال</div>`;
   }
 }
 </script>
