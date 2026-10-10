@@ -35,7 +35,7 @@ class URLCheck(BaseModel):
 class PhoneCheck(BaseModel):
     phone: str
 
-# --- VirusTotal (نفس كودك الأصلي ما لمسته) ---
+# --- VirusTotal ---
 def check_virustotal(url_to_scan: str):
     if not VT_API_KEY:
         return 0, 0
@@ -49,7 +49,7 @@ def check_virustotal(url_to_scan: str):
             return malicious, sum(stats.values())
         time.sleep(2)
         res = requests.post("https://www.virustotal.com/api/v3/urls", headers=headers, data={"url": url_to_scan}, timeout=15)
-        if res.status_code != 200:
+        if res.status_code!= 200:
             return 0,0
         analysis_id = res.json()['data']['id']
         time.sleep(6)
@@ -59,7 +59,7 @@ def check_virustotal(url_to_scan: str):
     except:
         return 0,0
 
-# --- Veriphone (نفس كودك الأصلي) ---
+# --- Veriphone 1000 مجاني ---
 @lru_cache(maxsize=10000)
 def check_veriphone_api(phone: str):
     if not VERIPHONE_KEY:
@@ -84,72 +84,100 @@ def check_veriphone_api(phone: str):
         print(f"Veriphone Error: {e}")
     return None
 
-# --- NumberBook القوي - هنا فقط التحسين ---
+# --- NumberBook القوي - يجيب 5 أسماء ---
 def get_numberbok_data(phone: str):
     clean = re.sub(r'\D', '', phone)
-    sa_original = clean
+    sa_country = clean
+    if clean.startswith('0'):
+        sa_country = '966' + clean[1:]
+    elif not clean.startswith('966'):
+        sa_country = '966' + clean.lstrip('0')
+
     if clean.startswith('966'):
         clean = '0' + clean[3:]
-    if not clean.startswith('0') and len(clean) == 9:
+    if len(clean) == 9:
         clean = '0' + clean
 
-    # 1- Truecaller4
+    all_names = []
+
+    # 1- Truecaller4 (الأفضل يجيب 5 أسماء)
     if RAPIDAPI_KEY:
         try:
             for host, endpoint in [
-                ("truecaller4.p.rapidapi.com", f"https://truecaller4.p.rapidapi.com/v1/lookup?phone={sa_original}&country=SA"),
-                ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search/{sa_original}")
+                ("truecaller4.p.rapidapi.com", f"https://truecaller4.p.rapidapi.com/v1/lookup?phone={sa_country}&country=SA"),
             ]:
                 try:
                     r = requests.get(endpoint, headers={"X-RapidAPI-Key": RAPIDAPI_KEY, "X-RapidAPI-Host": host}, timeout=6)
                     if r.status_code == 200:
                         d = r.json()
-                        name = d.get("name") or d.get("Name") or d.get("data", {}).get("name")
-                        if name and len(name) > 2:
-                            return {"name": name, "carrier": d.get("carrier","STC"), "reports": d.get("spamScore",0), "is_spam": d.get("isSpam", False), "source": "Truecaller4"}
+                        if isinstance(d.get("data"), list):
+                            for item in d["data"][:5]:
+                                if item.get("name"):
+                                    all_names.append(item["name"])
+                        else:
+                            name = d.get("name") or d.get("Name") or d.get("data",{}).get("name")
+                            if name: all_names.append(name)
+                        if all_names:
+                            all_names = list(dict.fromkeys(all_names))[:5]
+                            return {"names": all_names, "name": all_names[0], "carrier": "STC", "reports": len(all_names), "is_spam": False, "source": "Truecaller4", "count": len(all_names)}
                 except:
                     continue
         except:
             pass
 
-    # 2- API مدفوع
+    # 2- API مدفوع لو عندك
     if NUMBERBOOK_API_KEY and NUMBERBOOK_API_URL:
         try:
-            r = requests.get(NUMBERBOOK_API_URL, params={"phone": clean, "country": "SA"}, headers={"Authorization": f"Bearer {NUMBERBOOK_API_KEY}", "apikey": NUMBERBOOK_API_KEY}, timeout=6)
+            r = requests.get(NUMBERBOOK_API_URL, params={"phone": clean, "country": "SA"}, headers={"apikey": NUMBERBOOK_API_KEY}, timeout=6)
             if r.status_code == 200:
                 d = r.json()
-                name = d.get("name") or d.get("caller_name") or d.get("data", {}).get("name")
+                name = d.get("name") or d.get("caller_name")
                 if name:
-                    return {"name": name, "carrier": d.get("carrier","STC"), "reports": d.get("reports",0), "is_spam": d.get("is_spam", False), "source": "NumberBook API"}
-        except Exception as e:
-            print(f"NumberBook API Error: {e}")
+                    return {"names": [name], "name": name, "carrier": d.get("carrier","STC"), "reports": 1, "is_spam": False, "source": "NumberBook API", "count": 1}
+        except:
+            pass
 
-    # 3- كشط مجاني - تم تقويته من موقعين الى 5 مواقع
-    try:
-        headers = {"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)", "Accept-Language": "ar-SA,ar;q=0.9"}
-        # ضفت 3 مواقع جديدة قوية
-        urls_to_try = [
-            f"https://number-book.com/number/{clean}",
-            f"https://www.numberozo.com/number/{clean}",
-            f"https://sa.number-book.com/{clean}",
-            f"https://www.daleelaljoalat.com/sa/{clean}",
-            f"https://numberozo.com/saudi-arabia/{clean}"
-        ]
-        for url in urls_to_try:
-            try:
-                res = requests.get(url, headers=headers, timeout=6)
-                if res.status_code == 200 and len(res.text) > 1000:
-                    # جرب اكثر من نمط
-                    for pat in [r'<h1[^>]*>([^<]{3,40})</h1>', r'<title>([^<]{3,50}) - Number Book', r'"name"\s*:\s*"([^"]{3,50})"']:
-                        m = re.search(pat, res.text, re.I)
-                        if m:
-                            name = m.group(1).strip()
-                            if name and "number" not in name.lower() and len(name) > 2 and not name.replace(" ","").isdigit():
-                                return {"name": name, "carrier": "STC", "reports": 0, "is_spam": False, "source": "NumberBook Free"}
-            except:
+    # 3- كشط مجاني 3 مواقع - مع فلتر يمنع Home
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml",
+        "Referer": "https://number-book.com/",
+        "Accept-Language": "ar-SA,ar;q=0.9"
+    }
+    urls = [
+        f"https://number-book.com/number/{clean}",
+        f"https://sa.number-book.com/{clean}",
+        f"https://www.daleelaljoalat.com/sa/{clean}",
+    ]
+    for url in urls:
+        try:
+            res = requests.get(url, headers=headers, timeout=8)
+            text = res.text
+            if res.status_code!= 200 or len(text) < 1000: continue
+            # لو الصفحة بلوك
+            if "Home" in text[:600] and "STC" not in text[:2000] and len(text) < 3000:
                 continue
-    except:
-        pass
+
+            patterns = [
+                r'<div[^>]*class="[^"]*name[^"]*"[^>]*>([^<]{3,40})</div>',
+                r'<span[^>]*class="[^"]*caller[^"]*"[^>]*>([^<]{3,40})</span>',
+                r'<li[^>]*>([^<]{3,35})</li>',
+                r'<h2[^>]*>([^<]{3,40})</h2>',
+            ]
+            found = []
+            for pat in patterns:
+                for m in re.findall(pat, text, re.I):
+                    name = m.strip()
+                    bad = ["home","number","book","search","دليل","الرئيسية","caller","unknown","page"]
+                    if len(name)>=3 and len(name)<=35 and not any(b in name.lower() for b in bad) and not name.replace(" ","").isdigit() and "http" not in name.lower():
+                        name = re.sub(r'^\d+\s*-\s*','',name).strip()
+                        if name and name not in found and len(name)>2:
+                            found.append(name)
+            if found:
+                all_names = list(dict.fromkeys(found))[:5]
+                return {"names": all_names, "name": all_names[0], "carrier": "STC", "reports": len(all_names), "is_spam": False, "source": "NumberBook", "count": len(all_names)}
+        except:
+            continue
     return None
 
 @app.get("/")
@@ -162,7 +190,7 @@ def get_live():
 
 @app.get("/api")
 def home():
-    return {"status":"Tamman + Veriphone 1000 + NumberBook Linked ✅"}
+    return {"status":"Tamman + Veriphone + NumberBook 5 أسماء ✅"}
 
 @app.post("/check")
 def check_url(data: URLCheck):
@@ -196,29 +224,41 @@ def check_phone_api(data: PhoneCheck):
     phone = data.phone.strip()
     if not phone:
         return {"phone": "", "name": "غير صحيح", "score": 0}
+
     cache_key = f"PHONE_{re.sub(r'\\D','',phone)}"
     cached = get_cache(cache_key)
     if cached:
-        add_live(f"📱 {phone} (cache)", phone, cached.get("is_spam", False))
+        add_live(f"📱 {phone} (ذاكرة)", phone, cached.get("is_spam", False))
         return cached
+
     v_info = check_veriphone_api(phone)
     info = get_numberbok_data(phone)
+
     if info:
+        names = info.get("names", [info["name"]])
         name = info["name"]
-        carrier = v_info["carrier"] if v_info and v_info.get("carrier") != "غير معروف" else info["carrier"]
-        reports = info["reports"]
+        names_display = "، ".join(names[:5])
+        carrier = v_info["carrier"] if v_info and v_info.get("carrier")!= "غير معروف" else info["carrier"]
+        reports = info.get("count", len(names))
         is_spam = info["is_spam"]
         source = info["source"] + (" + Veriphone" if v_info else "")
+        extra_names = names
     else:
         name = "غير مسجل"
+        names_display = "غير مسجل"
+        extra_names = []
         carrier = v_info["carrier"] if v_info else "غير معروف"
         reports = 0
         is_spam = False
         source = "Veriphone" if v_info else "غير معروف"
+
     if v_info and not v_info.get("valid"):
         is_spam = True
         name = "رقم غير صالح"
-    score = 85 if is_spam else 10
+        names_display = "رقم غير صالح"
+
+    score = 85 if is_spam else (10 if info else 30)
+
     if is_spam:
         ai_analysis = {
             "verdict": "خطير",
@@ -228,7 +268,15 @@ def check_phone_api(data: PhoneCheck):
         }
         reasons = [f"تم التبليغ {reports} مرة في {source}", f"الاسم: {name}", f"الشبكة: {carrier}"]
     else:
-        if name == "غير مسجل":
+        if info:
+            ai_analysis = {
+                "verdict": "آمن",
+                "trick": f"لا يوجد خدعة، رقم حقيقي موثق عند {reports} أشخاص",
+                "what_if": "مكالمة عادية آمنة",
+                "advice": f"الرقم مسجل عند {reports} أشخاص باسم {name}"
+            }
+            reasons = [f"الاسم الرئيسي: {name}", f"كل الأسماء: {names_display}", f"الشبكة: {carrier}", f"المصدر: {source} - مسجل عند {reports} أشخاص"]
+        else:
             ai_analysis = {
                 "verdict": "غير معروف",
                 "trick": "الرقم غير مسجل لكنه صالح حسب Veriphone",
@@ -237,21 +285,24 @@ def check_phone_api(data: PhoneCheck):
             }
             reasons = [f"الشبكة: {carrier} - صالح: {v_info['valid'] if v_info else 'نعم'}", "غير مسجل في NumberBook"]
             score = 30
-        else:
-            ai_analysis = {
-                "verdict": "آمن",
-                "trick": "لا يوجد خدعة، رقم حقيقي موثق",
-                "what_if": "مكالمة عادية آمنة",
-                "advice": "الرقم آمن"
-            }
-            reasons = [f"الاسم: {name}", f"الشبكة: {carrier}", f"المصدر: {source}"]
+
     result = {
-        "phone": phone, "name": name, "carrier": carrier,
-        "source": source, "reports": reports, "is_spam": is_spam,
-        "is_phishing": is_spam, "score": score, "reasons": reasons,
+        "phone": phone,
+        "name": name,
+        "all_names": extra_names,
+        "names_display": names_display,
+        "names_count": reports,
+        "carrier": carrier,
+        "source": source,
+        "reports": reports,
+        "is_spam": is_spam,
+        "is_phishing": is_spam,
+        "score": score,
+        "reasons": reasons,
         "ai_analysis": ai_analysis,
         "veriphone": v_info
     }
+
     save_cache(cache_key, result)
     add_live(f"📱 {phone}", phone, is_spam)
     return result
