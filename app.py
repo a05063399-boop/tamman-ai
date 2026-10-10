@@ -11,16 +11,21 @@ from ai_service import explain_with_ai
 from ai_client import chat_with_tamman
 
 app = FastAPI(title="طَمّن AI Global - بلا حدود")
-
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 VT_API_KEY = os.getenv("VT_API_KEY")
 VERIPHONE_KEY = os.getenv("VERIPHONE_KEY")
-RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY") # حط هنا 10 مفاتيح مفصولة بفاصلة
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
 def mask_url(u):
     c = u.replace('https://','').replace('http://','').replace('www.','')
     return c[:6]+"****"+c[-4:] if len(c)>12 else c[:2]+"****"
+
+def mask_phone(p):
+    clean = re.sub(r'\D', '', p)
+    if len(clean) <= 6:
+        return clean[:2] + "****"
+    return clean[:2] + "XXXX" + clean[-4:]
 
 class URLCheck(BaseModel):
     url: str
@@ -53,73 +58,59 @@ def check_veriphone_api(phone: str):
     except: pass
     return None
 
-# --- النسخة النهائية - 10 مفاتيح + قراءة صحيحة ---
 def get_numberbok_data(phone: str):
     clean = re.sub(r'\D', '', phone)
     if not clean: return None
-
-    # تحويل لصيغة 966
     if clean.startswith('0'):
         sa_country = '966' + clean[1:]
     elif clean.startswith('966'):
         sa_country = clean
     else:
         sa_country = '966' + clean.lstrip('0')
-
     if not RAPIDAPI_KEY:
         return None
-
-    # يدعم 10 مفاتيح مفصولة بفاصلة
     keys = [k.strip() for k in RAPIDAPI_KEY.split(',') if k.strip()]
-
     for key in keys:
-        try:
-            url = f"https://truecaller4.p.rapidapi.com/v1/lookup?phone={sa_country}&country=SA"
-            r = requests.get(url, headers={"X-RapidAPI-Key": key, "X-RapidAPI-Host": "truecaller4.p.rapidapi.com"}, timeout=8)
-
-            if r.status_code == 429: # المفتاح خلص، جرب اللي بعده
-                print(f"Key {key[:8]} finished, trying next")
-                continue
-
-            if r.status_code == 200:
+        for host, url_template in [
+            ("truecaller4.p.rapidapi.com", f"https://truecaller4.p.rapidapi.com/v1/lookup?phone={sa_country}&country=SA"),
+            ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search?phone={sa_country}")
+        ]:
+            try:
+                r = requests.get(url_template, headers={"X-RapidAPI-Key": key, "X-RapidAPI-Host": host}, timeout=10)
+                if r.status_code == 429:
+                    break
+                if r.status_code!= 200:
+                    continue
                 j = r.json()
-                # ردك الحقيقي داخل data
                 data = j.get("data", j)
                 if not isinstance(data, dict):
                     continue
-
                 basic = data.get("basicInfo", {})
                 name_obj = basic.get("name", {})
-                full_name = name_obj.get("fullName") or name_obj.get("altName")
-
-                if not full_name or len(full_name.strip()) < 2:
+                full_name = name_obj.get("fullName") or name_obj.get("altName") or data.get("name")
+                if not full_name or len(full_name.strip()) < 2 or full_name.lower() == "test3":
                     continue
-
-                # جمع الأسماء الإضافية
                 all_names = [full_name.strip()]
                 for sug in data.get("communitySuggestions", [])[:4]:
                     if isinstance(sug, dict):
                         n = sug.get("name") or sug.get("fullName")
                         if n and n not in all_names and len(n) > 2:
                             all_names.append(n)
-
                 all_names = list(dict.fromkeys(all_names))[:5]
                 carrier = data.get("phoneInfo", {}).get("carrier", "STC")
                 spam_reports = data.get("spamInfo", {}).get("spamStats", {}).get("numReports", 0)
-
                 return {
                     "names": all_names,
                     "name": all_names[0],
                     "carrier": carrier,
                     "reports": spam_reports,
                     "is_spam": spam_reports > 5,
-                    "source": f"Truecaller4 ({key[:6]}..)",
+                    "source": f"{host.split('.')[0]} ({key[:6]}..)",
                     "count": len(all_names)
                 }
-        except Exception as e:
-            print(f"Error key {key[:6]}: {e}")
-            continue
-
+            except Exception as e:
+                print(f"Error {host} key {key[:6]}: {e}")
+                continue
     return None
 
 @app.get("/")
@@ -151,15 +142,14 @@ def check_url(data: URLCheck):
 def check_phone_api(data: PhoneCheck):
     phone = data.phone.strip()
     if not phone: return {"phone": "", "name": "غير صحيح", "score": 0}
+    masked_for_live = f"📱 {mask_phone(phone)}"
     cache_key = f"PHONE_{re.sub(r'\\D','',phone)}"
     cached = get_cache(cache_key)
     if cached:
-        add_live(f"📱 {phone} (ذاكرة)", phone, cached.get("is_spam", False))
+        add_live(f"{masked_for_live} (ذاكرة)", phone, cached.get("is_spam", False))
         return cached
-
     v_info = check_veriphone_api(phone)
     info = get_numberbok_data(phone)
-
     if info:
         names = info.get("names", [info["name"]])
         name = info["name"]; names_display = "، ".join(names[:5])
@@ -170,12 +160,9 @@ def check_phone_api(data: PhoneCheck):
         name = "غير مسجل"; names_display = "غير مسجل"; extra_names = []
         carrier = v_info["carrier"] if v_info else "غير معروف"; reports=0; is_spam=False
         source = "Veriphone" if v_info else "غير معروف"
-
     if v_info and not v_info.get("valid"):
         is_spam=True; name="رقم غير صالح"; names_display="رقم غير صالح"
-
     score = 85 if is_spam else (10 if info else 30)
-
     if is_spam:
         ai_analysis = {"verdict": "خطير", "trick": f"مسجل كإزعاج في {source}", "what_if": "قد يطلب كود", "advice": "احظره"}
         reasons = [f"الاسم: {name}", f"الشبكة: {carrier}"]
@@ -187,9 +174,8 @@ def check_phone_api(data: PhoneCheck):
             ai_analysis = {"verdict": "غير معروف", "trick": "صالح لكن غير مسجل", "what_if": "رقم جديد", "advice": "كن حذر"}
             reasons = [f"الشبكة: {carrier}", "غير مسجل"]
             score=30
-
     result = {"phone": phone, "name": name, "all_names": extra_names, "names_display": names_display, "names_count": reports, "carrier": carrier, "source": source, "reports": reports, "is_spam": is_spam, "is_phishing": is_spam, "score": score, "reasons": reasons, "ai_analysis": ai_analysis, "veriphone": v_info}
-    save_cache(cache_key, result); add_live(f"📱 {phone}", phone, is_spam)
+    save_cache(cache_key, result); add_live(masked_for_live, phone, is_spam)
     return result
 
 @app.post("/ai-chat")
