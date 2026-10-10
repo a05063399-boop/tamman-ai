@@ -79,7 +79,7 @@ def check_url(data: URLCheck):
     vt_malicious, vt_total = check_virustotal(url_raw)
     vt_str = f"{vt_malicious}/{vt_total}"
 
-    if vt_malicious > 0:
+    if vt_malicious > 3:
         score += 50
         reasons.append(f"VirusTotal كشفه ({vt_malicious}/{vt_total})")
         is_phishing_local = True
