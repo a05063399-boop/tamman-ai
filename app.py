@@ -1,4 +1,5 @@
-import base64, os, time, re, requests, uuid
+import base64, os, time, re, requests
+from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -27,8 +28,6 @@ VT_API_KEY = os.getenv("VT_API_KEY")
 VERIPHONE_KEY = os.getenv("VERIPHONE_KEY")
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
-ALLOWED_EXTS = {".jpg", ".png", ".txt", ".pdf"}
-
 def clean_input(text: str, max_len: int = 500):
     text = re.sub(r'<[^>]*>', '', text)
     return text.strip()[:max_len]
@@ -42,6 +41,20 @@ def mask_phone(p):
     if len(clean) <= 6:
         return clean[:2] + "****"
     return clean[:2] + "XXXX" + clean[-4:]
+
+def get_daily_key(ip: str, check_type: str):
+    today = datetime.now().strftime("%Y-%m-%d")
+    clean_ip = re.sub(r'\D', '', ip)[-6:]
+    return f"LIMIT_{check_type}_{clean_ip}_{today}"
+
+def check_and_increment_limit(ip: str, check_type: str, limit: int = 5):
+    key = get_daily_key(ip, check_type)
+    data = get_cache(key)
+    count = data.get("count", 0) if data else 0
+    if count >= limit:
+        return False, count
+    save_cache(key, {"count": count + 1})
+    return True, count + 1
 
 class URLCheck(BaseModel):
     url: str
@@ -158,6 +171,11 @@ def clear_cache(phone: str):
 @limiter.limit("10/minute")
 def check_url(data: URLCheck, request: Request):
     try:
+        ip = request.client.host
+        allowed, used = check_and_increment_limit(ip, "URL", 5)
+        if not allowed:
+            raise HTTPException(status_code=429, detail=f"وصلت للحد اليومي 5 فحوصات روابط - حاول بكرة")
+
         url_raw = clean_input(data.url, 500)
         if not url_raw:
             raise HTTPException(status_code=400, detail="رابط غير صالح")
@@ -178,7 +196,7 @@ def check_url(data: URLCheck, request: Request):
 
         is_phishing = is_phishing_local or score>=45
         ai_data = explain_with_ai(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
-        result = {"url": url_raw, "is_phishing": is_phishing, "score": min(score,100), "risk": "عالي 🔴" if is_phishing else "آمن 🟢", "reasons": reasons if reasons else ["لا يوجد مؤشرات"], "virustotal": {"malicious": vt_malicious, "total": vt_total}, "ai_analysis": ai_data, "time": time.time()}
+        result = {"url": url_raw, "is_phishing": is_phishing, "score": min(score,100), "risk": "عالي 🔴" if is_phishing else "آمن 🟢", "reasons": reasons if reasons else ["لا يوجد مؤشرات"], "virustotal": {"malicious": vt_malicious, "total": vt_total}, "ai_analysis": ai_data, "time": time.time(), "remaining": 5 - used}
         save_cache(url_raw, result)
         add_live(mask_url(url_raw), url_raw, is_phishing)
         return result
@@ -191,6 +209,11 @@ def check_url(data: URLCheck, request: Request):
 @limiter.limit("10/minute")
 def check_phone_api(data: PhoneCheck, request: Request):
     try:
+        ip = request.client.host
+        allowed, used = check_and_increment_limit(ip, "PHONE", 5)
+        if not allowed:
+            raise HTTPException(status_code=429, detail=f"وصلت للحد اليومي 5 فحوصات جوال - حاول بكرة")
+
         phone = clean_input(data.phone, 20)
         if not phone:
             return {"phone": "", "name": "غير صحيح", "score": 0}
@@ -242,7 +265,7 @@ def check_phone_api(data: PhoneCheck, request: Request):
                 reasons = [f"الشبكة: {carrier}", "غير مسجل"]
                 score=30
 
-        result = {"phone": phone, "name": name, "all_names": extra_names, "names_display": names_display, "names_count": reports, "carrier": carrier, "source": source, "reports": reports, "is_spam": is_spam, "is_phishing": is_spam, "score": score, "reasons": reasons, "ai_analysis": ai_analysis, "veriphone": v_info}
+        result = {"phone": phone, "name": name, "all_names": extra_names, "names_display": names_display, "names_count": reports, "carrier": carrier, "source": source, "reports": reports, "is_spam": is_spam, "is_phishing": is_spam, "score": score, "reasons": reasons, "ai_analysis": ai_analysis, "veriphone": v_info, "remaining": 5 - used}
         save_cache(cache_key, result)
         add_live(masked_for_live, phone, is_spam)
         return result
