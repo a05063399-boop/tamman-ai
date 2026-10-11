@@ -1,21 +1,37 @@
-import base64, os, time, re, requests
-from fastapi import FastAPI
+import base64, os, time, re, requests, uuid
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from functools import lru_cache
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 from ai_rules import analyze_local
 from database import get_cache, save_cache, add_live, get_live as get_live_db
 from ai_service import explain_with_ai
 from ai_client import chat_with_tamman
 
-app = FastAPI(title="طَمّن AI Global - بلا حدود")
+limiter = Limiter(key_func=get_remote_address)
+app = FastAPI(title="Tamman AI")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["tamman-ai.onrender.com", "*.onrender.com", "localhost", "127.0.0.1"])
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 VT_API_KEY = os.getenv("VT_API_KEY")
 VERIPHONE_KEY = os.getenv("VERIPHONE_KEY")
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+
+ALLOWED_EXTS = {".jpg", ".png", ".txt", ".pdf"}
+
+def clean_input(text: str, max_len: int = 500):
+    text = re.sub(r'<[^>]*>', '', text)
+    return text.strip()[:max_len]
 
 def mask_url(u):
     c = u.replace('https://','').replace('http://','').replace('www.','')
@@ -33,7 +49,8 @@ class PhoneCheck(BaseModel):
     phone: str
 
 def check_virustotal(url_to_scan: str):
-    if not VT_API_KEY: return 0,0
+    if not VT_API_KEY:
+        return 0,0
     try:
         headers = {"x-apikey": VT_API_KEY}
         url_id = base64.urlsafe_b64encode(url_to_scan.encode()).decode().strip("=")
@@ -41,26 +58,32 @@ def check_virustotal(url_to_scan: str):
         if res.status_code == 200:
             stats = res.json()['data']['attributes']['last_analysis_stats']
             return stats.get('malicious',0)+stats.get('suspicious',0), sum(stats.values())
-    except: pass
+    except:
+        pass
     return 0,0
 
 @lru_cache(maxsize=10000)
 def check_veriphone_api(phone: str):
-    if not VERIPHONE_KEY: return None
+    if not VERIPHONE_KEY:
+        return None
     clean = re.sub(r'\D', '', phone)
-    if clean.startswith('0'): clean = '+966' + clean[1:]
-    elif not clean.startswith('+'): clean = '+966' + clean.lstrip('9660')
+    if clean.startswith('0'):
+        clean = '+966' + clean[1:]
+    elif not clean.startswith('+'):
+        clean = '+966' + clean.lstrip('9660')
     try:
         r = requests.get("https://api.veriphone.io/v2/verify", params={"key": VERIPHONE_KEY, "phone": clean}, timeout=8)
         if r.status_code == 200:
             d = r.json()
             return {"valid": d.get("phone_valid", True), "carrier": d.get("carrier","STC"), "type": d.get("phone_type","mobile"), "country": d.get("country","SA")}
-    except: pass
+    except:
+        pass
     return None
 
 def get_numberbok_data(phone: str):
     clean = re.sub(r'\D', '', phone)
-    if not clean: return None
+    if not clean:
+        return None
     if clean.startswith('0'):
         sa_country = '966' + clean[1:]
     elif clean.startswith('966'):
@@ -68,10 +91,8 @@ def get_numberbok_data(phone: str):
     else:
         sa_country = '966' + clean.lstrip('0')
     if not RAPIDAPI_KEY:
-        print("RAPIDAPI_KEY missing!")
         return None
     keys = [k.strip() for k in RAPIDAPI_KEY.split(',') if k.strip()]
-    print(f"Trying {len(keys)} keys for {sa_country}")
     for key in keys:
         for host, url_template in [
             ("truecaller-data2.p.rapidapi.com", f"https://truecaller-data2.p.rapidapi.com/Search?phone={sa_country}"),
@@ -79,9 +100,7 @@ def get_numberbok_data(phone: str):
         ]:
             try:
                 r = requests.get(url_template, headers={"X-RapidAPI-Key": key, "X-RapidAPI-Host": host}, timeout=10)
-                print(f"{host} {key[:6]}.. status {r.status_code}")
                 if r.status_code == 429:
-                    print(f"Key {key[:6]} exhausted")
                     break
                 if r.status_code!= 200:
                     continue
@@ -92,7 +111,7 @@ def get_numberbok_data(phone: str):
                 basic = data.get("basicInfo", {})
                 name_obj = basic.get("name", {})
                 full_name = name_obj.get("fullName") or name_obj.get("altName") or data.get("name")
-                if not full_name or len(full_name.strip()) < 2 or full_name.lower() in ["test3", "test"]:
+                if not full_name or len(full_name.strip()) < 2:
                     continue
                 all_names = [full_name.strip()]
                 for sug in data.get("communitySuggestions", [])[:4]:
@@ -109,20 +128,25 @@ def get_numberbok_data(phone: str):
                     "carrier": carrier,
                     "reports": spam_reports,
                     "is_spam": spam_reports > 5,
-                    "source": f"{host.split('.')[0]} ({key[:6]}..)",
+                    "source": f"{host.split('.')[0]}",
                     "count": len(all_names)
                 }
-            except Exception as e:
-                print(f"Error {host} key {key[:6]}: {e}")
+            except:
                 continue
     return None
 
 @app.get("/")
-def serve_index(): return FileResponse("index.html")
+def serve_index():
+    return FileResponse("index.html")
+
 @app.get("/api/live")
-def get_live(): return get_live_db()
+def get_live():
+    return get_live_db()
+
 @app.get("/api")
-def home(): return {"status": f"Tamman + {len(RAPIDAPI_KEY.split(',') if RAPIDAPI_KEY else 0)} keys ✅"}
+def home():
+    return {"status": f"Tamman + {len(RAPIDAPI_KEY.split(',') if RAPIDAPI_KEY else 0)} keys"}
+
 @app.get("/clear/{phone}")
 def clear_cache(phone: str):
     clean = re.sub(r'\D','',phone)
@@ -131,66 +155,110 @@ def clear_cache(phone: str):
     return {"cleared": phone, "masked": mask_phone(phone)}
 
 @app.post("/check")
-def check_url(data: URLCheck):
-    url_raw = data.url.strip()
-    cached = get_cache(url_raw)
-    if cached and cached.get("name")!= "غير مسجل":
-        add_live(mask_url(url_raw), url_raw, cached["is_phishing"])
-        return cached
-    score, reasons, is_phishing_local = analyze_local(url_raw)
-    vt_malicious, vt_total = check_virustotal(url_raw)
-    vt_str = f"{vt_malicious}/{vt_total}"
-    if vt_malicious >= 3:
-        score+=50; is_phishing_local=True; reasons.append(f"VirusTotal ({vt_malicious}/{vt_total})")
-    is_phishing = is_phishing_local or score>=45
-    ai_data = explain_with_ai(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
-    result = {"url": url_raw, "is_phishing": is_phishing, "score": min(score,100), "risk": "عالي 🔴" if is_phishing else "آمن 🟢", "reasons": reasons if reasons else ["لا يوجد مؤشرات"], "virustotal": {"malicious": vt_malicious, "total": vt_total}, "ai_analysis": ai_data, "time": time.time()}
-    save_cache(url_raw, result); add_live(mask_url(url_raw), url_raw, is_phishing)
-    return result
+@limiter.limit("10/minute")
+def check_url(data: URLCheck, request: Request):
+    try:
+        url_raw = clean_input(data.url, 500)
+        if not url_raw:
+            raise HTTPException(status_code=400, detail="رابط غير صالح")
+
+        cached = get_cache(url_raw)
+        if cached and cached.get("name")!= "غير مسجل":
+            add_live(mask_url(url_raw), url_raw, cached["is_phishing"])
+            return cached
+
+        score, reasons, is_phishing_local = analyze_local(url_raw)
+        vt_malicious, vt_total = check_virustotal(url_raw)
+        vt_str = f"{vt_malicious}/{vt_total}"
+
+        if vt_malicious >= 3:
+            score+=50
+            is_phishing_local=True
+            reasons.append(f"VirusTotal ({vt_malicious}/{vt_total})")
+
+        is_phishing = is_phishing_local or score>=45
+        ai_data = explain_with_ai(url_raw, score, reasons if reasons else ["لا يوجد مؤشرات"], vt_str)
+        result = {"url": url_raw, "is_phishing": is_phishing, "score": min(score,100), "risk": "عالي 🔴" if is_phishing else "آمن 🟢", "reasons": reasons if reasons else ["لا يوجد مؤشرات"], "virustotal": {"malicious": vt_malicious, "total": vt_total}, "ai_analysis": ai_data, "time": time.time()}
+        save_cache(url_raw, result)
+        add_live(mask_url(url_raw), url_raw, is_phishing)
+        return result
+    except HTTPException:
+        raise
+    except:
+        return {"is_phishing": False, "score": 0, "risk": "خطأ", "reasons": ["حاول مرة أخرى"]}
 
 @app.post("/check-phone")
-def check_phone_api(data: PhoneCheck):
-    phone = data.phone.strip()
-    if not phone: return {"phone": "", "name": "غير صحيح", "score": 0}
-    masked_for_live = f"📱 {mask_phone(phone)}"
-    cache_key = f"PHONE_{re.sub(r'\D','',phone)}"
-    cached = get_cache(cache_key)
-    if cached and cached.get("name") not in ["غير مسجل", "غير صحيح", None, ""]:
-        if "غير معروف" not in cached.get("carrier", "") or cached.get("all_names"):
-            add_live(f"{masked_for_live} (ذاكرة)", phone, cached.get("is_spam", False))
-            return cached
-    v_info = check_veriphone_api(phone)
-    info = get_numberbok_data(phone)
-    if info:
-        names = info.get("names", [info["name"]])
-        name = info["name"]; names_display = "، ".join(names[:5])
-        carrier = v_info["carrier"] if v_info and v_info.get("carrier")!="غير معروف" else info["carrier"]
-        reports = info.get("count", len(names)); is_spam = info["is_spam"]
-        source = info["source"] + (" + Veriphone" if v_info else ""); extra_names = names
-    else:
-        name = "غير مسجل"; names_display = "غير مسجل"; extra_names = []
-        carrier = v_info["carrier"] if v_info else "غير معروف"; reports=0; is_spam=False
-        source = "Veriphone" if v_info else "غير معروف"
-    if v_info and not v_info.get("valid"):
-        is_spam=True; name="رقم غير صالح"; names_display="رقم غير صالح"
-    score = 85 if is_spam else (10 if info else 30)
-    if is_spam:
-        ai_analysis = {"verdict": "خطير", "trick": f"مسجل كإزعاج في {source}", "what_if": "قد يطلب كود", "advice": "احظره"}
-        reasons = [f"الاسم: {name}", f"الشبكة: {carrier}"]
-    else:
+@limiter.limit("10/minute")
+def check_phone_api(data: PhoneCheck, request: Request):
+    try:
+        phone = clean_input(data.phone, 20)
+        if not phone:
+            return {"phone": "", "name": "غير صحيح", "score": 0}
+
+        masked_for_live = f"📱 {mask_phone(phone)}"
+        cache_key = f"PHONE_{re.sub(r'\D','',phone)}"
+        cached = get_cache(cache_key)
+        if cached and cached.get("name") not in ["غير مسجل", "غير صحيح", None, ""]:
+            if "غير معروف" not in cached.get("carrier", "") or cached.get("all_names"):
+                add_live(f"{masked_for_live} (ذاكرة)", phone, cached.get("is_spam", False))
+                return cached
+
+        v_info = check_veriphone_api(phone)
+        info = get_numberbok_data(phone)
+
         if info:
-            ai_analysis = {"verdict": "آمن", "trick": f"موثق عند {reports} أشخاص", "what_if": "مكالمة عادية", "advice": f"مسجل عند {reports} أشخاص باسم {name}"}
-            reasons = [f"الاسم الرئيسي: {name}", f"كل الأسماء: {names_display}", f"الشبكة: {carrier}", f"المصدر: {source}"]
+            names = info.get("names", [info["name"]])
+            name = info["name"]
+            names_display = "، ".join(names[:5])
+            carrier = v_info["carrier"] if v_info and v_info.get("carrier")!="غير معروف" else info["carrier"]
+            reports = info.get("count", len(names))
+            is_spam = info["is_spam"]
+            source = info["source"]
+            extra_names = names
         else:
-            ai_analysis = {"verdict": "غير معروف", "trick": "صالح لكن غير مسجل", "what_if": "رقم جديد", "advice": "كن حذر"}
-            reasons = [f"الشبكة: {carrier}", "غير مسجل"]
-            score=30
-    result = {"phone": phone, "name": name, "all_names": extra_names, "names_display": names_display, "names_count": reports, "carrier": carrier, "source": source, "reports": reports, "is_spam": is_spam, "is_phishing": is_spam, "score": score, "reasons": reasons, "ai_analysis": ai_analysis, "veriphone": v_info}
-    save_cache(cache_key, result); add_live(masked_for_live, phone, is_spam)
-    return result
+            name = "غير مسجل"
+            names_display = "غير مسجل"
+            extra_names = []
+            carrier = v_info["carrier"] if v_info else "غير معروف"
+            reports=0
+            is_spam=False
+            source = "Veriphone" if v_info else "غير معروف"
+
+        if v_info and not v_info.get("valid"):
+            is_spam=True
+            name="رقم غير صالح"
+
+        score = 85 if is_spam else (10 if info else 30)
+
+        if is_spam:
+            ai_analysis = {"verdict": "خطير", "trick": f"مسجل كإزعاج في {source}", "what_if": "قد يطلب كود", "advice": "احظره"}
+            reasons = [f"الاسم: {name}", f"الشبكة: {carrier}"]
+        else:
+            if info:
+                ai_analysis = {"verdict": "آمن", "trick": f"موثق عند {reports} أشخاص", "what_if": "مكالمة عادية", "advice": f"مسجل عند {reports} أشخاص باسم {name}"}
+                reasons = [f"الاسم الرئيسي: {name}", f"كل الأسماء: {names_display}", f"الشبكة: {carrier}", f"المصدر: {source}"]
+            else:
+                ai_analysis = {"verdict": "غير معروف", "trick": "صالح لكن غير مسجل", "what_if": "رقم جديد", "advice": "كن حذر"}
+                reasons = [f"الشبكة: {carrier}", "غير مسجل"]
+                score=30
+
+        result = {"phone": phone, "name": name, "all_names": extra_names, "names_display": names_display, "names_count": reports, "carrier": carrier, "source": source, "reports": reports, "is_spam": is_spam, "is_phishing": is_spam, "score": score, "reasons": reasons, "ai_analysis": ai_analysis, "veriphone": v_info}
+        save_cache(cache_key, result)
+        add_live(masked_for_live, phone, is_spam)
+        return result
+    except HTTPException:
+        raise
+    except:
+        return {"phone": phone, "name": "خطأ", "score": 0, "reasons": ["حاول مرة أخرى"]}
 
 @app.post("/ai-chat")
-def ai_chat_endpoint(data: dict):
-    message = data.get("message",""); history = data.get("history",[])
-    if not message.strip(): return {"reply": "اكتب شي 😅"}
-    return {"reply": chat_with_tamman(message, history)}
+@limiter.limit("15/minute")
+def ai_chat_endpoint(data: dict, request: Request):
+    try:
+        message = clean_input(data.get("message",""), 1000)
+        history = data.get("history",[])
+        if not message.strip():
+            return {"reply": "اكتب شي 😅"}
+        return {"reply": chat_with_tamman(message, history)}
+    except:
+        return {"reply": "حاول مرة أخرى"}
