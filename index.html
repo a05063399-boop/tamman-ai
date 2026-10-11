@@ -76,7 +76,7 @@ body{background:#eef5ee;display:flex;justify-content:center;min-height:100vh}
 
 <div id="p3" class="page"><div class="card-main" style="height:78vh;display:flex;flex-direction:column;padding:14px"><div style="text-align:center"><div style="font-size:28px">🤖</div><div id="t-aiTitle" style="font-weight:800;color:#0a5d2e">طَمّن AI</div><div id="t-aiSub" class="sub-green" style="font-size:13px">مساعدك الذكي للأمان</div></div><div id="chatPageMessages" style="flex:1;overflow-y:auto;background:#f6faf6;border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px"><div class="chat-msg chat-ai" id="t-aiFirst">هلا! أنا طمّن AI 🤖</div></div><div style="display:flex;gap:8px;margin-top:10px"><input id="chatPageInput" placeholder="اسأل طمّن..." onkeypress="if(event.key==='Enter') sendChatPage()" style="flex:1;border:1.5px solid #c8e6c9;border-radius:22px;padding:12px;outline:none"><button onclick="sendChatPage()" style="background:#0ca24b;color:white;border:0;width:46px;height:46px;border-radius:50%">➤</button></div></div></div>
 
-<div id="p4" class="page"><div class="card-main"><b id="t-setT">الإعدادات</b><br><br><span id="t-setD">حماية طمّن نشطة 🟢</span></div></div>
+<div id="p4" class="page"><div class="card-main"><b id="t-setT">الإعدادات</b><br><br><span id="t-setD">حماية طمّن نشطة 🟢</span><br><br><small style="opacity:.6">الحد اليومي: 5 فحوصات روابط + 5 فحوصات جوال</small></div></div>
 </div>
 
 <div class="nav">
@@ -144,33 +144,45 @@ async function doScanLink(){
  outLink.innerHTML=`<div class="result safe">⏳ جاري الفحص...</div>`;
  try{
   let r=await fetch('/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:v})});
+  if(r.status===429){
+    let err=await r.json();
+    outLink.innerHTML=`<div class="result bad">⛔ ${err.detail || 'خلصت فحوصاتك اليومية (5 روابط). تعال بكرة!'}</div>`;
+    return;
+  }
   let d=await r.json();
   let vt=d.virustotal||{malicious:0,total:0};
   let isBad=d.is_phishing;
   let cls=isBad?'bad':(d.score>=30?'mid':'safe');
   let label=isBad? (LANG=='ar'?'مشبوه':'Suspicious') : (d.score>=30? (LANG=='ar'?'متوسط':'Medium') : (LANG=='ar'?'آمن':'Safe'));
   let ai=d.ai_analysis||{};
-  let aiHtml=typeof ai==='object'?`<div class="ai-box"><b>🤖 ${TR[LANG].logo} ${ai.verdict||label}</b><br><br><b>${LANG=='ar'?'الخدعة':'Trick'}:</b> ${ai.trick||''}<br><b>${LANG=='ar'?'لو دخلت':'If you enter'}:</b> ${ai.what_if||''}<br><b>${LANG=='ar'?'نصيحتنا':'Advice'}:</b> ${ai.advice||''}</div>`:`<div class="ai-box">${ai}</div>`;
-  outLink.innerHTML=`<div class="result ${cls}"><b>${label} - ${d.score}%</b> | VirusTotal: ${vt.malicious}/${vt.total}<br><small>${(d.reasons||[]).join(' - ')}</small></div>${aiHtml}`;
+  let rem=d.remaining!==undefined?`<div style="margin-top:8px;opacity:.6;font-size:11px">🔋 باقي لك ${d.remaining} فحوصات روابط اليوم</div>`:'';
+  let aiHtml=typeof ai==='object'?`<div class="ai-box"><b>🤖 ${TR[LANG].logo} ${ai.verdict||label}</b><br><br><b>${LANG=='ar'?'الخدعة':'Trick'}:</b> ${ai.trick||''}<br><b>${LANG=='ar'?'لو دخلت':'If you enter'}:</b> ${ai.what_if||''}<br><b>${LANG=='ar'?'نصيحتنا':'Advice'}:</b> ${ai.advice||''}${rem}</div>`:`<div class="ai-box">${ai}${rem}</div>`;
+  outLink.innerHTML=`<div class="result ${cls}"><b>${label} - ${d.score}%</b> | VirusTotal: ${vt.malicious}/${vt.total}<br><small>${(d.reasons||[]).join(' - ')}</small>${rem}</div>${aiHtml}`;
  }catch{outLink.innerHTML=`<div class="result bad">⚠️ Error</div>`;}
  renderLive();
 }
 
-// --- هنا التعديل المهم: الجوال صار نفس الروابط ---
 async function doScanPhone(){
  let v=phoneIn.value.trim(); if(!v) return;
  outPhone.innerHTML=`<div class="result safe">⏳ جاري البحث في NumberBook...</div>`;
  try{
   let r=await fetch('/check-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:v})});
+  if(r.status===429){
+    let err=await r.json();
+    outPhone.innerHTML=`<div class="result bad">⛔ ${err.detail || 'خلصت فحوصاتك اليومية (5 جوالات). تعال بكرة!'}</div>`;
+    return;
+  }
   let d=await r.json();
   let cls = d.is_spam? 'bad' : 'safe';
   let label = d.is_spam? (LANG=='ar'?'مشبوه':'Suspicious') : (LANG=='ar'?'آمن':'Safe');
   let icon = d.is_spam? '⚠️' : '✅';
+  let rem=d.remaining!==undefined?`<div style="margin-top:6px;opacity:.6;font-size:11px">🔋 باقي لك ${d.remaining} فحوصات جوال اليوم</div>`:'';
   outPhone.innerHTML=`
     <div class="result ${cls}">
       <div style="display:flex;justify-content:space-between;font-weight:800"><span>${icon} ${label} - ${d.score}%</span><span>📖 ${d.source}: ${d.reports||0} بلاغ</span></div>
       <div style="margin-top:6px">👤 الاسم: <b>${d.name}</b> - ${d.carrier||'STC'}</div>
       <div style="margin-top:4px;opacity:.7;font-size:11px">${(d.reasons||[]).join(' - ')|| (d.is_spam?'تم التبليغ كإزعاج':'رقم حقيقي آمن')}</div>
+      ${rem}
     </div>
     <div class="ai-box">
       <b>🤖 تحليل طمّن: ${d.ai_analysis?.verdict||label} ${d.is_spam?'🔴':'🟢'}</b><br><br>
@@ -185,7 +197,7 @@ async function doScanPhone(){
 }
 
 let chatHistoryPage=[];
-async function sendChatPage(){let i=chatPageInput,m=i.value.trim();if(!m)return;chatPageMessages.innerHTML+=`<div class="chat-msg chat-user">${m}</div>`;i.value="";chatHistoryPage.push({role:"user",content:m});let tid="t"+Date.now();chatPageMessages.innerHTML+=`<div id="${tid}" class="chat-msg chat-ai">يكتب...</div>`;try{let res=await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,history:chatHistoryPage})});let data=await res.json();document.getElementById(tid).remove();chatPageMessages.innerHTML+=`<div class="chat-msg chat-ai">${data.reply}</div>`;chatHistoryPage.push({role:"assistant",content:data.reply});}catch{document.getElementById(tid).remove();}}
+async function sendChatPage(){let i=chatPageInput,m=i.value.trim();if(!m)return;chatPageMessages.innerHTML+=`<div class="chat-msg chat-user">${m}</div>`;i.value="";chatHistoryPage.push({role:"user",content:m});let tid="t"+Date.now();chatPageMessages.innerHTML+=`<div id="${tid}" class="chat-msg chat-ai">يكتب...</div>`;try{let res=await fetch('/ai-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m,history:chatHistoryPage})});if(res.status===429){document.getElementById(tid).innerText='⛔ خلصت فحوصاتك اليومية، حاول بكرة';return;}let data=await res.json();document.getElementById(tid).remove();chatPageMessages.innerHTML+=`<div class="chat-msg chat-ai">${data.reply}</div>`;chatHistoryPage.push({role:"assistant",content:data.reply});}catch{document.getElementById(tid).remove();}}
 urlIn.addEventListener('paste',e=>{e.preventDefault();let t=(e.clipboardData||window.clipboardData).getData('text').trim();let mm=t.match(/(https?:\/\/[^\s]+)/i);if(mm) t=mm[1];urlIn.value=t;});
 </script>
 </body>
